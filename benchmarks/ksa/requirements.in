@@ -1,0 +1,9 @@
+# Official model dependencies; PyTorch upgraded from cu126 for RTX 5090.
+torch==2.7.1
+transformers==4.57.1
+tokenizers==0.22.1
+accelerate==1.9.0
+safetensors==0.5.3
+numpy==2.2.6
+einops==0.8.1
+summary_attn @ https://raw.githubusercontent.com/Kuaishou-OneRec/KSA/9998565d0aa2907cc99e3ab0717b8bf246e77876/summary_attention_kernel/summary_attn-0.3.0-py3-none-any.whl#sha256=3a8e7893b17b4bcc2daf13d75ed30d75631a25da18b63a515279dcd4f18cc536
