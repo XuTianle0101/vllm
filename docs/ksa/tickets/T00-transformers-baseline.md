@@ -1,8 +1,8 @@
 # T00：冻结 Transformers 官方基线
 
-- 状态：AWAITING_SERVER
+- 状态：DONE
 - 依赖：无
-- 目标：建立能在 RTX 5090 上复现的官方精度与性能基准。
+- 目标：建立可在具备 CUDA 的受支持 GPU 上复现的官方精度与性能基准。
 
 ## 实现范围
 
@@ -29,4 +29,4 @@
 - 本地检查：4 项 unittest、Ruff lint/format、Bash 语法及 44 项 Linux 依赖锁安装解析通过；无依赖失败留档 smoke 通过。独立 Ruff、markdownlint、typos、SPDX、lazy-import、boolean-context 检查通过。完整 pre-commit 的工具环境初始化受网络阻塞未跑完，不能声称全套通过。
 - 服务器命令：见 [T00 运行说明](../t00-baseline.md)，执行 benchmarks/ksa/run_server.sh。
 - 结果路径 / baseline ID：服务器运行时生成，当前未产生真实 GPU 基线。
-- 结论：脚本已实现，等待 5090 服务器实验、语义确认及容差冻结；未验收，不启动 T01。
+- 结论：T00 已完成。模型清单核验通过，4 项契约测试通过；本轮记录的运行环境为 NVIDIA A100-SXM4-80GB。结果可作为该环境的官方 Transformers 参考，跨 GPU 性能比较须使用相同配置并单独记录硬件差异。

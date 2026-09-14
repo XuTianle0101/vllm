@@ -1,0 +1,16 @@
+{
+  "probe": "summary sees self and 8 text rows; text excludes local summaries",
+  "analytic_atol": 0.01,
+  "cases": [
+    {
+      "window": 128,
+      "max_abs_error": 0.0,
+      "status": "pass"
+    },
+    {
+      "window": 16768,
+      "max_abs_error": 0.0,
+      "status": "pass"
+    }
+  ]
+}

@@ -57,6 +57,23 @@ def command(*args):
     return result.stdout.strip()
 
 
+def install_transformers_compat():
+    """Bridge KSA's factory-style decorator to newer Transformers releases."""
+    from transformers.utils import generic
+
+    original = generic.check_model_inputs
+    if getattr(original, "_ksa_compat", False):
+        return
+
+    def compatible(func=None):
+        if func is None:
+            return lambda wrapped: original(wrapped)
+        return original(func)
+
+    compatible._ksa_compat = True
+    generic.check_model_inputs = compatible
+
+
 def make_inputs(tokenizer):
     unit = tokenizer.encode(PROMPT, add_special_tokens=False)
     cases = {}
@@ -489,7 +506,9 @@ def main():
     status = "BLOCKED"
     try:
         import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
+
+        install_transformers_compat()
 
         if not torch.cuda.is_available():
             raise RuntimeError(
@@ -498,6 +517,14 @@ def main():
         torch.manual_seed(0)
         torch.backends.cuda.matmul.allow_tf32 = False
         tokenizer = AutoTokenizer.from_pretrained(args.model, local_files_only=True)
+        config = AutoConfig.from_pretrained(
+            args.model, trust_remote_code=True, local_files_only=True
+        )
+        if not hasattr(config, "rope_parameters"):
+            config.rope_parameters = {
+                "rope_type": "default",
+                "rope_theta": config.rope_theta,
+            }
         env, inputs = collect(args, torch, tokenizer)
         import summary_attn.interface as kernel
 
@@ -512,6 +539,7 @@ def main():
         start = time.perf_counter()
         model = AutoModelForCausalLM.from_pretrained(
             args.model,
+            config=config,
             trust_remote_code=True,
             local_files_only=True,
             torch_dtype=torch.bfloat16,

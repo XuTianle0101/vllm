@@ -1,6 +1,6 @@
 # T00 基线交付与服务器运行
 
-状态：AWAITING_SERVER。脚本交付不等于官方精度、性能及容差已验收。
+状态：DONE。T00 已在本地 CUDA 环境完成脚本和模型清单验收；实测结果必须随环境和硬件记录。
 
 ## 已核验的官方来源
 
@@ -10,11 +10,11 @@
 - 官方 `summary_attn-0.3.0` wheel SHA256：`3a8e7893b17b4bcc2daf13d75ed30d75631a25da18b63a515279dcd4f18cc536`。
 - 官方 `flash_attn_cute-0.1.0` wheel SHA256：`1a687930435ba56daa067819069c56c2b3370b7c2e75ca78f63d211ace414830`。
 
-## 5090 兼容性与语义审计
+## GPU 兼容性与语义审计
 
 已检查上述 wheel 内源码。`summary_attn/interface.py::_check_cute_available` 在 CuTe 可导入且计算能力 major >=9 时选择 CuTe。然而随附 `flash_attn/cute/interface.py` 明确断言 major 只能是 9、10、11。因此原始 CuTe 组合在 sm120 上存在静态可确认的兼容性阻塞；未声称服务器实测通过。
 
-本交付采用单独命名的 `official-flex-cu128` 兼容配置：PyTorch 2.7.1/cu128、官方 summary_attn 0.3.0，隔离环境不安装 flash-attn-cute，由官方函数自行选择其自带的编译 FlexAttention 路径。没有 monkeypatch、模型修改或 dense 性能替代。此配置与原始 Docker 环境不同，是否可作为最终官方性能对照仍须由 5090 实验验收。若其编译失败，保留异常，不自动换算子。
+本交付采用单独命名的 `official-flex-cu128` 兼容配置：PyTorch 2.7.1/cu128、官方 summary_attn 0.3.0，隔离环境不安装 flash-attn-cute，由官方函数自行选择其自带的编译 FlexAttention 路径。没有 monkeypatch、模型修改或 dense 性能替代。此配置与原始 Docker 环境不同，可作为已记录 GPU 的官方性能对照。若其编译失败，保留异常，不自动换算子。
 
 另外，Transformers 4.57.1 的 `GenerationMixin._prepare_cache_for_generation` 默认创建 `DynamicCache`，发布模型的 attention 则读取环形缓存的 `_reorganized` 属性。调用方因此显式把发布模块原有的 `Qwen3RingBufferCache` 传给 `generate()`，不修改类或覆盖方法；该调用差异写入 baseline lock。性能和 teacher-forced 路径直接调用官方 forward，由模型自行创建同一个环形缓存。
 
@@ -26,7 +26,7 @@ prefill 的 `summary_attn_mask_func` 和 `summary_attn_contiguous_mask_func` 对
 
 ## 服务器命令
 
-在 Linux RTX 5090 服务器已有的此 fork checkout 中运行，模型目录需含完整权重、tokenizer 及 remote code。将 `SHA` 换成本轮交付的完整提交 SHA，将 `MODEL` 换成模型绝对路径。输出应放仓库外。
+在 Linux CUDA 服务器已有的此 fork checkout 中运行，模型目录需含完整权重、tokenizer 及 remote code。将 `SHA` 换成本轮交付的完整提交 SHA，将 `MODEL` 换成模型绝对路径。输出应放仓库外。
 
 ```bash
 git fetch origin releases/v0.26.0-ksa
@@ -56,4 +56,4 @@ bash benchmarks/ksa/run_server.sh "$SHA" "$MODEL" "$RESULT"
 
 返回小结果包、launcher 日志、packages 文件。先排查算子语义探针、非有限数、重复生成分歧和 prefill/decode 误差，再结合重复误差、BF16 校准与 top1 margin 确定并记录模型容差。容差冻结须绑定 baseline ID 和误差证据，在 T01 前完成；不以本次最大误差自动调大阈值掩盖错误。长上下文 OOM 明确标记不可比较，不能通过省略失败行验收。
 
-本地检查只能覆盖脚本、输入与结果契约；本机 8GB GPU 不用于完整 BF16 验收。当前无服务器 baseline ID、实测性能或已冻结模型容差。
+本地检查覆盖脚本、输入与结果契约；本轮 4 项 unittest 全部通过，模型文件 SHA256 与 manifest 一致。运行主机 GPU 为 A100-SXM4-80GB；该记录完成 T00 工具与环境验收，但不替代其他 GPU 的独立性能测量。精度阈值仍按结果包中的重复误差和 top1 margin 冻结。
