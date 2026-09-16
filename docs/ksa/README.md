@@ -1,7 +1,8 @@
 # KSA vLLM 适配文档
 
-当前状态：**T00 已完成 A100 全量精度、校准与性能验收，基线和容差已冻结。**
+当前状态：**T00 基线已冻结，T01 prefill 与 T02 单请求缓存 decode 已通过 A100 验收。**
 
+- [T02 运行与验收](t02-decode.md)：Python 缓存生成、精度与性能对照、当前限制。
 - [总计划](ksa-vllm-plan.md)：目标、约束、语义、精度与性能门禁。
 - [Ticket 看板](tickets/README.md)：T00–T07 的顺序与状态。
 - [开发与服务器实验流程](workflow.md)：逐 ticket 的交付、push、实验、反馈和关闭规则。

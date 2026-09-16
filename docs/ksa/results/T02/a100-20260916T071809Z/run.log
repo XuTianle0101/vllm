@@ -1,0 +1,50 @@
+INFO 09-16 07:11:13 [model.py:623] Resolved architecture: KSAForCausalLM
+INFO 09-16 07:11:13 [model.py:1788] Using max model len 8192
+INFO 09-16 07:11:13 [scheduler.py:252] Chunked prefill is enabled with max_num_batched_tokens=2048.
+INFO 09-16 07:11:13 [vllm.py:1109] Asynchronous scheduling is enabled.
+WARNING 09-16 07:11:13 [vllm.py:1163] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+WARNING 09-16 07:11:13 [vllm.py:1213] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 09-16 07:11:13 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+INFO 09-16 07:11:13 [vllm.py:1392] Cudagraph is disabled under eager mode
+INFO 09-16 07:11:13 [compilation.py:329] Enabled custom fusions: norm_quant
+INFO 09-16 07:11:13 [parallel_state.py:1615] world_size=1 rank=0 local_rank=0 distributed_init_method=file:///tmp/tmp6awyfnbv/store backend=nccl
+INFO 09-16 07:11:13 [parallel_state.py:1946] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+INFO 09-16 07:11:13 [cuda.py:482] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+INFO 09-16 07:11:13 [flash_attn.py:776] Using FlashAttention version 2
+INFO 09-16 07:11:14 [weight_utils.py:869] Filesystem type for checkpoints: NFS. Checkpoint size: 7.49 GiB. Available RAM: 975.60 GiB.
+INFO 09-16 07:11:14 [weight_utils.py:831] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+Loading safetensors checkpoint shards:   0% Completed | 0/2 [00:00<?, ?it/s]
+INFO 09-16 07:11:14 [weight_utils.py:803] Prefetching checkpoint files: 10% (1/2)
+INFO 09-16 07:11:15 [weight_utils.py:803] Prefetching checkpoint files: 20% (2/2)
+INFO 09-16 07:11:15 [weight_utils.py:826] Prefetching checkpoint files into page cache finished in 0.79s
+Loading safetensors checkpoint shards:  50% Completed | 1/2 [00:00<00:00,  1.24it/s]
+Loading safetensors checkpoint shards: 100% Completed | 2/2 [00:01<00:00,  1.22it/s]
+Loading safetensors checkpoint shards: 100% Completed | 2/2 [00:01<00:00,  1.23it/s]
+
+INFO 09-16 07:11:16 [default_loader.py:430] Loading weights took 1.79 seconds
+Teacher forced length-1
+WARNING 09-16 07:11:16 [op.py:338] Priority not set for op rms_norm, using native implementation.
+WARNING 09-16 07:11:16 [op.py:338] Priority not set for op fused_add_rms_norm, using native implementation.
+Teacher forced length-7
+Teacher forced length-8
+Teacher forced length-9
+Teacher forced length-15
+Teacher forced length-16
+Teacher forced length-17
+Teacher forced length-1023
+Teacher forced length-1024
+Teacher forced length-1025
+Teacher forced length-1031
+Teacher forced length-1032
+Teacher forced length-1033
+Teacher forced length-4096
+Teacher forced english
+Teacher forced chinese
+Teacher forced retrieval-4096
+Generate length-7
+Generate length-8
+Generate length-9
+Generate english
+Generate chinese
+Timing 1024
+Timing 4096

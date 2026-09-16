@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
-"""KSA eager prefill using Qwen3 components and PyTorch attention."""
+"""KSA eager prefill and cached decode using Qwen3 components and PyTorch attention."""
 
 import torch
 
+from .ksa_decode import MAX_CACHED_TEXT_TOKENS, KSACache, cached_layout
 from .ksa_prefill import (
-    expand_prefill_sequence,
     prefill_attention,
     prefill_layout,
     validate_ksa_config,
@@ -15,7 +15,7 @@ from .qwen3 import Qwen3ForCausalLM
 
 
 class KSAForCausalLM(Qwen3ForCausalLM):
-    """Single-request, uncached prefill; invoke through the T01 launcher."""
+    """Single-request Python attention; invoke through the KSA Python runner."""
 
     def __init__(self, *, vllm_config, prefix: str = ""):
         config = vllm_config.model_config.hf_config
@@ -24,40 +24,83 @@ class KSAForCausalLM(Qwen3ForCausalLM):
             vllm_config.parallel_config.pipeline_parallel_size != 1
             or vllm_config.parallel_config.tensor_parallel_size != 1
         ):
-            raise ValueError("T01 requires tensor and pipeline parallel sizes of one")
+            raise ValueError("KSA Python prototype requires TP=PP=1")
         if vllm_config.quant_config is not None:
-            raise ValueError("T01 requires unquantized weights")
+            raise ValueError("KSA Python prototype requires unquantized weights")
         super().__init__(vllm_config=vllm_config, prefix=prefix)
         self.text_row_indices = None
         self.reference_attention = False
         self.layer_observer = None
+        limit = getattr(config, "truncate_predict_nums", config.summary_token_begin)
+        self.text_vocab_size = min(
+            limit if limit > 0 else config.summary_token_begin,
+            config.summary_token_begin,
+        )
 
     def forward(
-        self, input_ids, positions, intermediate_tensors=None, inputs_embeds=None
+        self,
+        input_ids,
+        positions,
+        intermediate_tensors=None,
+        inputs_embeds=None,
+        *,
+        cache: KSACache | None = None,
     ):
         if intermediate_tensors is not None:
-            raise ValueError("T01 only supports complete, uncached prefill")
-        if positions.ndim != 1 or not torch.equal(
-            positions, torch.arange(positions.numel(), device=positions.device)
-        ):
-            raise ValueError("T01 requires one full request with text positions 0..N-1")
-        # The normal serving runner would retain an empty KV cache for decode.
+            raise ValueError(
+                "KSA Python prototype does not support pipeline parallelism"
+            )
         from vllm.forward_context import is_forward_context_available
 
         if is_forward_context_available():
-            raise RuntimeError("T01 is prefill-only; use benchmarks/ksa/prefill.py")
-        pos, rows, summary = prefill_layout(positions.numel(), device=positions.device)
+            raise RuntimeError(
+                "KSA Python prototype requires KSAPythonRunner; serving, batching, "
+                "prefix caching, chunked prefill, speculative decode and graphs "
+                "are unsupported"
+            )
+        start = cache.text_tokens if cache is not None else 0
+        if (
+            positions.ndim != 1
+            or positions.dtype not in (torch.int32, torch.int64)
+            or not torch.equal(
+                positions,
+                torch.arange(start, start + positions.numel(), device=positions.device),
+            )
+        ):
+            raise ValueError(
+                "requires contiguous text positions 0..N-1 then cached decode"
+            )
+        if cache is not None and cache.owner is not None and cache.owner is not self:
+            raise ValueError("KSA cache belongs to a different model")
+        if start and positions.numel() != 1:
+            raise ValueError("T02 cached decode requires exactly one new text token")
+        end = start + positions.numel()
+        if end > min(MAX_CACHED_TEXT_TOKENS, self.config.max_position_embeddings):
+            raise ValueError("T02 cache exceeds maximum text length")
+        if start:
+            if len(cache.layers) != len(self.model.layers):
+                raise ValueError("incomplete KSA layer cache")
+            pos, rows, summary = cached_layout(
+                start, positions.numel(), positions.device
+            )
+        else:
+            pos, rows, summary = prefill_layout(
+                positions.numel(), device=positions.device
+            )
         self.text_row_indices = rows
         if inputs_embeds is None:
-            if input_ids is None or input_ids.shape != positions.shape:
+            if (
+                input_ids is None
+                or input_ids.shape != positions.shape
+                or input_ids.dtype not in (torch.int32, torch.int64)
+            ):
                 raise ValueError("input_ids must match text positions")
             if torch.any(
                 (input_ids < 0) | (input_ids >= self.config.summary_token_begin)
             ):
                 raise ValueError("text input contains a reserved summary token")
-            ids, _ = expand_prefill_sequence(
-                input_ids, summary_token=self.config.summary_token_begin
-            )
+            ids = positions.new_full(pos.shape, self.config.summary_token_begin)
+            ids[rows] = input_ids
             hidden = self.embed_input_ids(ids)
         else:
             if inputs_embeds.shape != (positions.numel(), self.config.hidden_size):
@@ -65,7 +108,15 @@ class KSAForCausalLM(Qwen3ForCausalLM):
             ids = positions.new_full(pos.shape, self.config.summary_token_begin)
             hidden = self.embed_input_ids(ids)
             hidden[rows] = inputs_embeds
-        masks = {w: visibility_mask(pos, summary, w) for w in set(self.windows)}
+        if start:
+            key_pos, _, key_summary = cached_layout(0, end, positions.device)
+            masks = {
+                w: visibility_mask(pos, summary, w, key_pos, key_summary)
+                for w in set(self.windows)
+            }
+        else:
+            masks = {w: visibility_mask(pos, summary, w) for w in set(self.windows)}
+        pending = []
         residual = None
         for index, layer in enumerate(self.model.layers):
             if residual is None:
@@ -79,6 +130,15 @@ class KSAForCausalLM(Qwen3ForCausalLM):
             q = attn.q_norm(q.reshape(-1, attn.num_heads, attn.head_dim))
             k = attn.k_norm(k.reshape(-1, attn.num_kv_heads, attn.head_dim))
             q, k = attn.rotary_emb(pos, q.flatten(1), k.flatten(1))
+            k = k.reshape(-1, attn.num_kv_heads, attn.head_dim)
+            v = v.reshape(-1, attn.num_kv_heads, attn.head_dim)
+            if start:
+                old_k, old_v = cache.layers[index]
+                if old_k.shape[0] != cache.internal_rows or old_v.shape != old_k.shape:
+                    raise ValueError("KSA cache row count does not match text count")
+                k, v = torch.cat((old_k, k)), torch.cat((old_v, v))
+            if cache is not None:
+                pending.append((k, v))
             mask = masks[self.windows[index]]
             output = prefill_attention(
                 q.reshape(-1, attn.num_heads, attn.head_dim),
@@ -93,15 +153,15 @@ class KSAForCausalLM(Qwen3ForCausalLM):
             if self.layer_observer is not None:
                 self.layer_observer(index, hidden + residual, rows, summary)
         hidden, _ = self.model.norm(hidden, residual)
+        if cache is not None:
+            cache.layers = pending
+            cache.text_tokens = end
+            cache.owner = self
         return hidden[rows]
 
     def compute_logits(self, hidden_states):
         logits = super().compute_logits(hidden_states)
-        # Match the released model's text-only prediction vocabulary.
-        limit = getattr(
-            self.config, "truncate_predict_nums", self.config.summary_token_begin
-        )
-        return logits[..., :limit] if limit > 0 else logits
+        return logits[..., : self.text_vocab_size]
 
     def load_weights(self, weights):
         """Validate every unpacked checkpoint shard before AutoWeightsLoader."""

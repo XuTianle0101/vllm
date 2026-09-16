@@ -274,3 +274,83 @@ def test_model_initialization_loader_and_text_only_forward(tiny_model):
         model(ids, torch.arange(1, 18))
     with pytest.raises(ValueError, match="reserved"):
         model(torch.tensor([63]), torch.arange(1))
+
+
+@pytest.mark.parametrize("length", [7, 8, 9, 1023])
+def test_cached_decode_matches_full_prefill_across_blocks(tiny_model, length):
+    """Catch summary timing, stale KV and text/internal-position confusion."""
+    from vllm.model_executor.models.ksa_decode import KSACache
+
+    model = tiny_model
+    ids = torch.arange(length + 25) % 63
+    cache = KSACache()
+    with torch.inference_mode():
+        expected = model(ids, torch.arange(len(ids)))
+        prompt = model(ids[:length], torch.arange(length), cache=cache)
+        torch.testing.assert_close(prompt, expected[:length], atol=2e-6, rtol=1e-5)
+        for position in range(length, len(ids)):
+            actual = model(
+                ids[position : position + 1], torch.tensor([position]), cache=cache
+            )
+            torch.testing.assert_close(
+                actual, expected[position : position + 1], atol=2e-6, rtol=1e-5
+            )
+            assert cache.text_tokens == position + 1
+            assert cache.internal_rows == position + 1 + (position + 1) // 8
+            assert all(k.shape[0] == cache.internal_rows for k, v in cache.layers)
+            assert actual.shape == (1, 32)
+        old_count = cache.text_tokens
+        with pytest.raises(ValueError, match="contiguous"):
+            model(ids[:1], torch.tensor([old_count - 1]), cache=cache)
+        with pytest.raises(ValueError, match="exactly one"):
+            model(ids[:2], torch.arange(old_count, old_count + 2), cache=cache)
+        assert cache.text_tokens == old_count
+        cache.clear()
+        torch.testing.assert_close(
+            model(ids[:8], torch.arange(8), cache=cache), expected[:8]
+        )
+
+
+def test_generation_stops_counts_and_filters_summary_rows(tiny_model, monkeypatch):
+    """A block-end prompt must sample the final text row; EOS counts once."""
+    from vllm.model_executor.models.ksa_decode import KSAPythonRunner
+
+    runner = KSAPythonRunner(tiny_model)
+    ids = torch.arange(8)
+    with torch.inference_mode():
+        expected = (
+            tiny_model.compute_logits(tiny_model(ids, torch.arange(8))[-1:])
+            .argmax()
+            .item()
+        )
+    result = runner.generate(ids, max_tokens=25, ignore_eos=True)
+    assert result.token_ids[0] == expected
+    assert result.prompt_tokens == 8 and result.completion_tokens == 25
+    assert result.finish_reason == "length" and max(result.token_ids) < 63
+    assert runner.generate(ids, max_tokens=25, ignore_eos=True) == result
+    stopped = runner.generate(ids, max_tokens=25, eos_token_ids=[expected])
+    assert stopped.token_ids == [expected] and stopped.finish_reason == "stop"
+    assert stopped.completion_tokens == 1
+    assert runner.generate(ids, max_tokens=0).token_ids == []
+    with pytest.raises(ValueError, match="1-D"):
+        runner.generate(ids[None], max_tokens=1)
+    with pytest.raises(ValueError, match="exceeds"):
+        runner.generate(ids, max_tokens=8192)
+    with pytest.raises(ValueError, match="EOS"):
+        runner.generate(ids, max_tokens=1, eos_token_ids=[63])
+    with pytest.raises(TypeError):
+        runner.generate(ids, max_tokens=1, temperature=1)
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("injected layer failure")
+
+    from vllm.model_executor.models.ksa_decode import KSACache
+
+    cache = KSACache()
+    with torch.inference_mode():
+        tiny_model(ids, torch.arange(8), cache=cache)
+        old_layers = cache.layers
+        monkeypatch.setattr(tiny_model.model.layers[-1].mlp, "forward", fail)
+        with pytest.raises(RuntimeError, match="injected"):
+            tiny_model(ids[:1], torch.tensor([8]), cache=cache)
+        assert cache.layers is old_layers and cache.text_tokens == 8

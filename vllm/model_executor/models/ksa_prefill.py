@@ -116,16 +116,19 @@ def expand_prefill_sequence(input_ids, block_size=8, summary_token=151936):
     return expanded, text_rows
 
 
-def visibility_mask(positions, summary, window):
-    """Official predicates: local text, distant summaries, same-block summary Q."""
-    blocks = positions // 8
-    distance = blocks[:, None] - blocks[None, :]
-    rows = torch.arange(positions.numel(), device=positions.device)
-    causal = rows[:, None] >= rows[None, :]
-    text_query = ((~summary[None, :]) & (distance <= window)) | (
-        summary[None, :] & (distance > window)
+def visibility_mask(positions, summary, window, key_positions=None, key_summary=None):
+    """Official predicates for square prefill or rectangular cached queries."""
+    if key_positions is None:
+        key_positions, key_summary = positions, summary
+    distance = positions[:, None] // 8 - key_positions[None, :] // 8
+    # A block's last text and summary share RoPE position but not causal order.
+    causal = (key_positions[None, :] < positions[:, None]) | (
+        (key_positions[None, :] == positions[:, None])
+        & (summary[:, None] | ~key_summary[None, :])
     )
-    # Released T00 semantics include the summary query's own KV.
+    text_query = ((~key_summary[None, :]) & (distance <= window)) | (
+        key_summary[None, :] & (distance > window)
+    )
     return causal & torch.where(summary[:, None], distance == 0, text_query)
 
 

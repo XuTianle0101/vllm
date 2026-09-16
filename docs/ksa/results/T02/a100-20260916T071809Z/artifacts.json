@@ -1,0 +1,95 @@
+{
+  "raw_directory": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1",
+  "files": [
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/correctness.json",
+      "bytes": 287924,
+      "sha256": "0960f8dbe1b745cc16b494c1613932a8a3a5f7e22e5d11c010865f0206094035"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/environment.json",
+      "bytes": 10715,
+      "sha256": "6ad871724809e9d79a7916a31a7930d80409fa2b4703552ebd081581b48f860a"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/generation.json",
+      "bytes": 431396,
+      "sha256": "7b5043d1922b99bdccdaea6055b58fae185fba595b90e226de391b4af3e2f5ca"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/hf-generated-chinese.pt",
+      "bytes": 77792900,
+      "sha256": "d3dff0f86860f1ded7df2d42492121cd2a0da5882ca7c25dfac1d55703cbf1fa"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/hf-generated-english.pt",
+      "bytes": 77792900,
+      "sha256": "8f23378982fca1139012c06bf7b746ec1d30d8184b570d3ca3728c0f85fbf1e2"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/hf-generated-length-7.pt",
+      "bytes": 77792907,
+      "sha256": "2a71da9eed07777f385646382abce5750643852a7d494e7d5535357644deadc4"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/hf-generated-length-8.pt",
+      "bytes": 77792907,
+      "sha256": "dde573a8f670f45c0ca1969bd8d5d6c1a4ecc2be1c9e002243372e8ed748f8ee"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/hf-generated-length-9.pt",
+      "bytes": 77792907,
+      "sha256": "5d3983580e146cb3acde1b2f9f04ea2e39339ba4b1df44de8ebb750e56267f9a"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/hf-reference.log",
+      "bytes": 865,
+      "sha256": "12eb51d873b5d0cc82603055107efb6199a56a26844bb532981cd575081b935c"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/hf-timing.json",
+      "bytes": 62421,
+      "sha256": "237ea435f79c5219e22ba0348e1acc63d161cb91a0080ff9b4283b776bffdd95"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/inputs.json",
+      "bytes": 4048273,
+      "sha256": "924d6d44150dd8a04d86158f052ca096224e8003f061fe08c2d72233ad66960b"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/summary.md",
+      "bytes": 1006,
+      "sha256": "431b0d44625478f82e935c162bbb2ea750af20e98351233bd722a19d2ef021bd"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/timing.json",
+      "bytes": 124370,
+      "sha256": "f74a542f38b29cf99da051e95fcbc1c53fa399bad7bc6d174582924e3c705204"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/vllm-generated-chinese.pt",
+      "bytes": 77792978,
+      "sha256": "28286e10ec4161d9d9e1cc5c3f4cd0f44c89a27b71ead568165db91eed1a51de"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/vllm-generated-english.pt",
+      "bytes": 77792978,
+      "sha256": "6ead60211439d767b2aa820f9f7a6e7c9fc04e96037f4bf229b4e9afd8d98fa2"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/vllm-generated-length-7.pt",
+      "bytes": 77792985,
+      "sha256": "66e439500ed57713d9a1271085e3c397a0a9e5a30051eac2db1155c757fd2fae"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/vllm-generated-length-8.pt",
+      "bytes": 77792985,
+      "sha256": "e3dea6e3448bcc20e0cb212801971dadf9d3c25fafb1e1d11d75a956ed3ef8bf"
+    },
+    {
+      "path": "/workspace/volume/h20-data/xutianle/KSA/results/T02/a100-run1/vllm-generated-length-9.pt",
+      "bytes": 77792985,
+      "sha256": "23a35bb6b3ef50b87e01c50901e2c3b4ad58d2ba1032e494b106bb32dd98131d"
+    }
+  ]
+}

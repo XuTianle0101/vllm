@@ -1,12 +1,12 @@
 # Ticket 看板
 
-T00 已完成 A100 精度、校准与性能验收，基线与容差已冻结。T01 当前状态以其交付记录为准。
+T00 已完成 A100 精度、校准与性能验收，基线与容差已冻结。T01/T02 已完成 A100 验收；T02 为单请求 Python 原型，性能差距见交付记录。
 
 | Ticket | 标题 | 依赖 | 状态 |
 | --- | --- | --- | --- |
 | [T00](T00-transformers-baseline.md) | 冻结 Transformers 官方基线 | 无 | DONE |
 | [T01](T01-python-prefill.md) | Python 模型与 prefill | T00 | DONE |
-| [T02](T02-python-decode.md) | Python 缓存 decode | T01 | TODO |
+| [T02](T02-python-decode.md) | Python 缓存 decode | T01 | DONE |
 | [T03](T03-compressed-kv.md) | 压缩 KV 与 Python 优化 | T02 | TODO |
 | [T04](T04-batching-chunked-prefill.md) | 批处理与 chunked prefill | T03 | TODO |
 | [T05](T05-cudagraph-profiling.md) | CUDA Graph 与瓶颈定位 | T04 | TODO |
