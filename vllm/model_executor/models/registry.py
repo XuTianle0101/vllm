@@ -195,6 +195,7 @@ _TEXT_GENERATION_MODELS = {
     "Qwen2ForCausalLM": ("qwen2", "Qwen2ForCausalLM"),
     "Qwen2MoeForCausalLM": ("qwen2_moe", "Qwen2MoeForCausalLM"),
     "Qwen3ForCausalLM": ("qwen3", "Qwen3ForCausalLM"),
+    "KSAForCausalLM": ("ksa", "KSAForCausalLM"),
     "Qwen3MoeForCausalLM": ("qwen3_moe", "Qwen3MoeForCausalLM"),
     "RWForCausalLM": ("falcon", "FalconForCausalLM"),
     "SarvamMoEForCausalLM": ("sarvam", "SarvamMoEForCausalLM"),
@@ -1225,6 +1226,14 @@ class _ModelRegistry:
         if not architectures:
             raise ValueError("No model architectures are specified")
 
+        # Released KSA checkpoints retain the Qwen3 architecture name.
+        if (
+            getattr(model_config.hf_config, "use_summary_attention", False)
+            and "Qwen3ForCausalLM" in architectures
+            and model_config.model_impl != "transformers"
+        ):
+            architectures = ["KSAForCausalLM"]
+
         # Require transformers impl
         if model_config.model_impl == "transformers":
             arch = self._try_resolve_transformers(architectures[0], model_config)
@@ -1276,6 +1285,14 @@ class _ModelRegistry:
             architectures = [architectures]
         if not architectures:
             raise ValueError("No model architectures are specified")
+
+        # Released KSA checkpoints retain the Qwen3 architecture name.
+        if (
+            getattr(model_config.hf_config, "use_summary_attention", False)
+            and "Qwen3ForCausalLM" in architectures
+            and model_config.model_impl != "transformers"
+        ):
+            architectures = ["KSAForCausalLM"]
 
         # Require transformers impl
         if model_config.model_impl == "transformers":

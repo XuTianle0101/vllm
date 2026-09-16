@@ -1,0 +1,276 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+"""CPU contract tests: bounded config, internal rows and causal GQA attention."""
+
+from types import SimpleNamespace
+
+import pytest
+import torch
+
+from vllm.model_executor.models.ksa_prefill import (
+    MAX_PREFILL_TOKENS,
+    expand_prefill_sequence,
+    parse_layer_windows,
+    prefill_attention,
+    prefill_layout,
+    validate_ksa_config,
+    visibility_mask,
+)
+
+
+@pytest.mark.parametrize(
+    "expression",
+    [
+        "__import__('os').system('id')",
+        "[1].real",
+        "[x for x in [1]]",
+        "[True]",
+        "[-1]",
+        "[1.0]",
+        "[1] * 1000000",
+        "[1] * (2 + 2)",
+        "[[1]]",
+        "[1] / 2",
+        "[1] ** 2",
+        "[1]" * 2000,
+    ],
+)
+def test_parse_windows_rejects_unsafe_or_unbounded_expressions(expression):
+    with pytest.raises(ValueError):
+        parse_layer_windows(expression)
+
+
+def test_released_config_expression():
+    assert parse_layer_windows("([128]*3+[16768]*1)*9") == [128, 128, 128, 16768] * 9
+    assert parse_layer_windows("([1])*36") == [1] * 36
+
+
+@pytest.mark.parametrize("length", [1, 7, 8, 9, 15, 16, 17, 1023, 1024, 1025, 1032])
+def test_summary_positions_and_text_mapping_at_boundaries(length):
+    pos, rows, summary = prefill_layout(length)
+    expanded, mapped = expand_prefill_sequence(torch.arange(length))
+    assert torch.equal(rows, mapped)
+    assert pos[rows].tolist() == list(range(length))
+    assert pos[summary].tolist() == list(range(7, length, 8))
+    assert expanded[rows].tolist() == list(range(length))
+    assert (expanded[summary] == 151936).all()
+
+
+@pytest.mark.parametrize("length", [0, MAX_PREFILL_TOKENS + 1])
+def test_explicit_mask_rejects_unsupported_length(length):
+    with pytest.raises(ValueError, match="supports lengths"):
+        prefill_layout(length)
+
+
+@pytest.mark.parametrize("window", [0, 1, 128, 16768])
+def test_all_window_types_match_independent_visibility_predicate(window):
+    pos, rows, summary = prefill_layout(1041)
+    mask = visibility_mask(pos, summary, window)
+    # Check all keys for block/window boundary queries and every summary row.
+    queries = sorted(
+        set(
+            rows[[0, 7, 8, 15, 16, 1023, 1024, 1031, 1032, 1040]].tolist()
+            + summary.nonzero().flatten().tolist()
+        )
+    )
+    for q in queries:
+        qb = q // 9
+        expected = []
+        for k in range(len(pos)):
+            kb, ks = k // 9, k % 9 == 8
+            visible = (
+                (kb == qb)
+                if q % 9 == 8
+                else ((not ks and qb - kb <= window) or (ks and qb - kb > window))
+            )
+            expected.append(k <= q and visible)
+        assert mask[q].tolist() == expected
+
+
+@pytest.mark.parametrize("reference", [False, True])
+def test_summary_sees_self_without_leaking_into_text_or_future(reference):
+    pos, rows, summary = prefill_layout(17)
+    mask = visibility_mask(pos, summary, 0)
+    q = torch.zeros(len(pos), 4, 8)
+    k = torch.zeros(len(pos), 2, 8)
+    v = torch.zeros_like(k)
+    v[8] = 9
+    output = prefill_attention(q, k, v, mask, reference)
+    torch.testing.assert_close(output[8], torch.ones_like(output[8]))
+    assert not output[rows[:8]].any()
+    v[18:] = 10000
+    changed = prefill_attention(q, k, v, mask, reference)
+    torch.testing.assert_close(output[:18], changed[:18], rtol=0, atol=0)
+
+
+def test_sdpa_matches_fp32_gqa_oracle():
+    torch.manual_seed(0)
+    pos, _, summary = prefill_layout(17)
+    q, k, v = torch.randn(3, len(pos), 4, 8)
+    mask = visibility_mask(pos, summary, 1)
+    expected = prefill_attention(q, k[:, :2], v[:, :2], mask, True)
+    actual = prefill_attention(q, k[:, :2], v[:, :2], mask)
+    torch.testing.assert_close(actual, expected, atol=1e-6, rtol=1e-5)
+
+
+def test_ksa_configuration_validates_shared_projection_contract():
+    config = SimpleNamespace(
+        use_summary_attention=True,
+        summary_sliding_chunk_num=[0, 1],
+        summary_token_begin=31,
+        vocab_size=32,
+    )
+    assert validate_ksa_config(config, 2) == [0, 1]
+    config.mix_coeff = 1
+    with pytest.raises(ValueError, match="mix_coeff"):
+        validate_ksa_config(config, 2)
+
+
+@pytest.mark.parametrize("ksa", [False, True])
+def test_registry_keeps_plain_qwen3_on_its_original_path(monkeypatch, ksa):
+    from vllm.model_executor.models.registry import ModelRegistry
+
+    config = SimpleNamespace(
+        hf_config=SimpleNamespace(use_summary_attention=ksa), model_impl="vllm"
+    )
+    monkeypatch.setattr(
+        type(ModelRegistry), "_normalize_arch", lambda self, arch, cfg: arch
+    )
+    monkeypatch.setattr(
+        type(ModelRegistry), "_try_inspect_model_cls", lambda self, arch: arch
+    )
+    monkeypatch.setattr(
+        type(ModelRegistry), "_try_load_model_cls", lambda self, arch: arch
+    )
+    expected = "KSAForCausalLM" if ksa else "Qwen3ForCausalLM"
+    assert ModelRegistry.inspect_model_cls(["Qwen3ForCausalLM"], config) == (
+        expected,
+        expected,
+    )
+    assert ModelRegistry.resolve_model_cls(["Qwen3ForCausalLM"], config) == (
+        expected,
+        expected,
+    )
+
+
+@pytest.fixture
+def tiny_model(tmp_path):
+    """Real Qwen projections/norms/MLP and loader; CPU tensors, no checkpoint."""
+    import json
+
+    from vllm.config import (
+        CompilationConfig,
+        ModelConfig,
+        VllmConfig,
+        set_current_vllm_config,
+    )
+    from vllm.distributed import (
+        cleanup_dist_env_and_memory,
+        init_distributed_environment,
+        initialize_model_parallel,
+    )
+    from vllm.model_executor.models.ksa import KSAForCausalLM
+
+    (tmp_path / "config.json").write_text(
+        json.dumps(
+            {
+                "model_type": "qwen3",
+                "architectures": ["Qwen3ForCausalLM"],
+                "hidden_size": 32,
+                "intermediate_size": 64,
+                "num_attention_heads": 2,
+                "num_key_value_heads": 1,
+                "head_dim": 16,
+                "num_hidden_layers": 4,
+                "vocab_size": 64,
+                "max_position_embeddings": 2048,
+                "use_summary_attention": True,
+                "summary_sliding_chunk_num": [0, 1, 128, 16768],
+                "summary_token_begin": 63,
+                "tie_word_embeddings": True,
+            }
+        )
+    )
+    config = VllmConfig(
+        model_config=ModelConfig(
+            model=str(tmp_path),
+            skip_tokenizer_init=True,
+            dtype="float32",
+            enforce_eager=True,
+        ),
+        compilation_config=CompilationConfig(mode=0, custom_ops=["none"]),
+    )
+    with set_current_vllm_config(config):
+        init_distributed_environment(
+            world_size=1,
+            rank=0,
+            local_rank=0,
+            backend="gloo",
+            distributed_init_method=f"file://{tmp_path}/store",
+        )
+        initialize_model_parallel(1, 1)
+        try:
+            model = KSAForCausalLM(vllm_config=config)
+            with torch.no_grad():
+                torch.manual_seed(42)
+                for parameter in model.parameters():
+                    parameter.normal_(0, 0.1)
+            yield model
+        finally:
+            cleanup_dist_env_and_memory()
+
+
+def unpacked_weights(model):
+    for name, parameter in model.named_parameters():
+        if ".qkv_proj." in name:
+            for shard, tensor in zip(
+                ("q_proj", "k_proj", "v_proj"), parameter.split([32, 16, 16])
+            ):
+                yield name.replace("qkv_proj", shard), tensor.detach().clone()
+        elif ".gate_up_proj." in name:
+            for shard, tensor in zip(("gate_proj", "up_proj"), parameter.chunk(2)):
+                yield name.replace("gate_up_proj", shard), tensor.detach().clone()
+        else:
+            yield name, parameter.detach().clone()
+
+
+def test_model_initialization_loader_and_text_only_forward(tiny_model):
+    model = tiny_model
+    weights = list(unpacked_weights(model))
+    assert model.load_weights(iter(weights))
+    ids = torch.arange(17)
+    with torch.inference_mode():
+        expected = model(ids, torch.arange(17))
+        embedded = model(
+            None, torch.arange(17), inputs_embeds=model.embed_input_ids(ids)
+        )
+        torch.testing.assert_close(embedded, expected)
+        assert expected.shape == (17, 32)
+        assert model.compute_logits(expected).shape == (17, 63)
+        assert model.text_row_indices.tolist() == list(range(8)) + list(
+            range(9, 17)
+        ) + [18]
+        changed = ids.clone()
+        changed[9:] += 17
+        torch.testing.assert_close(model(changed, torch.arange(17))[:9], expected[:9])
+        model.reference_attention = True
+        torch.testing.assert_close(
+            model(ids, torch.arange(17)), expected, atol=1e-6, rtol=1e-5
+        )
+    with pytest.raises(ValueError, match="missing.*q_proj"):
+        model.load_weights(
+            (n, t) for n, t in weights if n != "model.layers.0.self_attn.q_proj.weight"
+        )
+    with pytest.raises(ValueError, match="unexpected.*q_proj_summary"):
+        model.load_weights(
+            iter(
+                weights
+                + [("model.layers.0.self_attn.q_proj_summary.weight", weights[0][1])]
+            )
+        )
+    with pytest.raises(ValueError, match="duplicate"):
+        model.load_weights(iter(weights + weights[:1]))
+    with pytest.raises(ValueError, match="0..N-1"):
+        model(ids, torch.arange(1, 18))
+    with pytest.raises(ValueError, match="reserved"):
+        model(torch.tensor([63]), torch.arange(1))

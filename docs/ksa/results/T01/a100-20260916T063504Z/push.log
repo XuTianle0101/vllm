@@ -1,0 +1,18 @@
+Missing or invalid credentials.
+Error: connect ENOENT /tmp/vscode-git-0f318e84ae.sock
+    at PipeConnectWrap.afterConnect [as oncomplete] (node:net:1706:16) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'connect',
+  address: '/tmp/vscode-git-0f318e84ae.sock'
+}
+Missing or invalid credentials.
+Error: connect ENOENT /tmp/vscode-git-0f318e84ae.sock
+    at PipeConnectWrap.afterConnect [as oncomplete] (node:net:1706:16) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'connect',
+  address: '/tmp/vscode-git-0f318e84ae.sock'
+}
+remote: No anonymous write access.
+fatal: Authentication failed for 'https://github.com/XuTianle0101/vllm.git/'

@@ -1,0 +1,109 @@
+{
+  "mode": "prefill_only",
+  "warmups": 1,
+  "repetitions": 5,
+  "cases": [
+    {
+      "length": 1024,
+      "repetition": -1,
+      "status": "warmup",
+      "ttft_ms": 151.98329649865627,
+      "input_tokens_per_second": 6737.58250801629,
+      "peak_memory_bytes": 8716608512
+    },
+    {
+      "length": 1024,
+      "repetition": 0,
+      "status": "pass",
+      "ttft_ms": 151.52321569621563,
+      "input_tokens_per_second": 6758.040312799241,
+      "peak_memory_bytes": 8716912640
+    },
+    {
+      "length": 1024,
+      "repetition": 1,
+      "status": "pass",
+      "ttft_ms": 151.51349920779467,
+      "input_tokens_per_second": 6758.473702700412,
+      "peak_memory_bytes": 8716912640
+    },
+    {
+      "length": 1024,
+      "repetition": 2,
+      "status": "pass",
+      "ttft_ms": 151.66731737554073,
+      "input_tokens_per_second": 6751.619384580344,
+      "peak_memory_bytes": 8716912640
+    },
+    {
+      "length": 1024,
+      "repetition": 3,
+      "status": "pass",
+      "ttft_ms": 151.51372738182545,
+      "input_tokens_per_second": 6758.463524690715,
+      "peak_memory_bytes": 8716912640
+    },
+    {
+      "length": 1024,
+      "repetition": 4,
+      "status": "pass",
+      "ttft_ms": 151.48466359823942,
+      "input_tokens_per_second": 6759.760200648464,
+      "peak_memory_bytes": 8716912640
+    },
+    {
+      "length": 4096,
+      "repetition": -1,
+      "status": "warmup",
+      "ttft_ms": 1591.5678888559341,
+      "input_tokens_per_second": 2573.5628550185975,
+      "peak_memory_bytes": 14953610240
+    },
+    {
+      "length": 4096,
+      "repetition": 0,
+      "status": "pass",
+      "ttft_ms": 1591.57950617373,
+      "input_tokens_per_second": 2573.5440699705127,
+      "peak_memory_bytes": 14953610240
+    },
+    {
+      "length": 4096,
+      "repetition": 1,
+      "status": "pass",
+      "ttft_ms": 1592.1202544122934,
+      "input_tokens_per_second": 2572.6699906295553,
+      "peak_memory_bytes": 14953610240
+    },
+    {
+      "length": 4096,
+      "repetition": 2,
+      "status": "pass",
+      "ttft_ms": 1591.5684951469302,
+      "input_tokens_per_second": 2573.561874647353,
+      "peak_memory_bytes": 14953610240
+    },
+    {
+      "length": 4096,
+      "repetition": 3,
+      "status": "pass",
+      "ttft_ms": 1591.5700178593397,
+      "input_tokens_per_second": 2573.5594124279346,
+      "peak_memory_bytes": 14953610240
+    },
+    {
+      "length": 4096,
+      "repetition": 4,
+      "status": "pass",
+      "ttft_ms": 1591.6385892778635,
+      "input_tokens_per_second": 2573.4485376220873,
+      "peak_memory_bytes": 14953610240
+    },
+    {
+      "length": 16384,
+      "repetition": -1,
+      "status": "unsupported",
+      "error": "Traceback (most recent call last):\n  File \"/workspace/volume/h20-data/xutianle/KSA/vllm/benchmarks/ksa/prefill.py\", line 311, in run\n    logits = model.compute_logits(model(ids, positions)[-1:])\n                                  ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py\", line 1779, in _wrapped_call_impl\n    return self._call_impl(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py\", line 1790, in _call_impl\n    return forward_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/volume/h20-data/xutianle/KSA/vllm/vllm/model_executor/models/ksa.py\", line 49, in forward\n    pos, rows, summary = prefill_layout(positions.numel(), device=positions.device)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/volume/h20-data/xutianle/KSA/vllm/vllm/model_executor/models/ksa_prefill.py\", line 92, in prefill_layout\n    raise ValueError(\nValueError: explicit KSA prefill supports lengths 1..4096\n"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+INFO 09-16 06:35:18 [model.py:623] Resolved architecture: KSAForCausalLM
+INFO 09-16 06:35:18 [model.py:1788] Using max model len 4096
+INFO 09-16 06:35:18 [scheduler.py:252] Chunked prefill is enabled with max_num_batched_tokens=2048.
+INFO 09-16 06:35:18 [vllm.py:1109] Asynchronous scheduling is enabled.
+WARNING 09-16 06:35:18 [vllm.py:1163] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+WARNING 09-16 06:35:18 [vllm.py:1213] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 09-16 06:35:18 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+INFO 09-16 06:35:18 [vllm.py:1392] Cudagraph is disabled under eager mode
+INFO 09-16 06:35:18 [compilation.py:329] Enabled custom fusions: norm_quant
+INFO 09-16 06:35:18 [parallel_state.py:1615] world_size=1 rank=0 local_rank=0 distributed_init_method=file:///tmp/tmpi5ask1tc/store backend=nccl
+INFO 09-16 06:35:18 [parallel_state.py:1946] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+INFO 09-16 06:35:19 [cuda.py:482] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+INFO 09-16 06:35:19 [flash_attn.py:776] Using FlashAttention version 2
+INFO 09-16 06:35:19 [weight_utils.py:869] Filesystem type for checkpoints: NFS. Checkpoint size: 7.49 GiB. Available RAM: 975.71 GiB.
+INFO 09-16 06:35:19 [weight_utils.py:831] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+Loading safetensors checkpoint shards:   0% Completed | 0/2 [00:00<?, ?it/s]
+INFO 09-16 06:35:19 [weight_utils.py:803] Prefetching checkpoint files: 10% (1/2)
+INFO 09-16 06:35:19 [weight_utils.py:803] Prefetching checkpoint files: 20% (2/2)
+Loading safetensors checkpoint shards:  50% Completed | 1/2 [00:00<00:00,  1.31it/s]
+INFO 09-16 06:35:19 [weight_utils.py:826] Prefetching checkpoint files into page cache finished in 0.77s
+Loading safetensors checkpoint shards: 100% Completed | 2/2 [00:01<00:00,  1.24it/s]
+Loading safetensors checkpoint shards: 100% Completed | 2/2 [00:01<00:00,  1.25it/s]
+
+INFO 09-16 06:35:20 [default_loader.py:430] Loading weights took 1.76 seconds
+Comparing length-1
+WARNING 09-16 06:35:21 [op.py:338] Priority not set for op rms_norm, using native implementation.
+WARNING 09-16 06:35:21 [op.py:338] Priority not set for op fused_add_rms_norm, using native implementation.
+Comparing length-7
+Comparing length-8
+Comparing length-9
+Comparing length-15
+Comparing length-16
+Comparing length-17
+Comparing length-1023
+Comparing length-1024
+Comparing length-1025
+Comparing length-1031
+Comparing length-1032
+Comparing length-1033
+Comparing length-4096
+Comparing english
+Comparing chinese
+Comparing retrieval-4096
+INFO 09-16 06:35:48 [cuda.py:482] Using TRITON_ATTN attention backend out of potential backends: ['TRITON_ATTN', 'FLEX_ATTENTION'].
+INFO 09-16 06:35:48 [weight_utils.py:869] Filesystem type for checkpoints: NFS. Checkpoint size: 7.49 GiB. Available RAM: 974.88 GiB.
+INFO 09-16 06:35:48 [weight_utils.py:831] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+Loading safetensors checkpoint shards:   0% Completed | 0/2 [00:00<?, ?it/s]
+INFO 09-16 06:35:49 [weight_utils.py:803] Prefetching checkpoint files: 10% (1/2)
+INFO 09-16 06:35:49 [weight_utils.py:803] Prefetching checkpoint files: 20% (2/2)
+INFO 09-16 06:35:49 [weight_utils.py:826] Prefetching checkpoint files into page cache finished in 0.86s
+Loading safetensors checkpoint shards:  50% Completed | 1/2 [00:01<00:01,  1.58s/it]
+Loading safetensors checkpoint shards: 100% Completed | 2/2 [00:03<00:00,  1.49s/it]
+Loading safetensors checkpoint shards: 100% Completed | 2/2 [00:03<00:00,  1.51s/it]
+
+INFO 09-16 06:35:51 [default_loader.py:430] Loading weights took 3.17 seconds
+FP32 layers 17
+FP32 layers 1025

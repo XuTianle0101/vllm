@@ -5,7 +5,7 @@ T00 已完成 A100 精度、校准与性能验收，基线与容差已冻结。T
 | Ticket | 标题 | 依赖 | 状态 |
 | --- | --- | --- | --- |
 | [T00](T00-transformers-baseline.md) | 冻结 Transformers 官方基线 | 无 | DONE |
-| [T01](T01-python-prefill.md) | Python 模型与 prefill | T00 | NEEDS_FIX |
+| [T01](T01-python-prefill.md) | Python 模型与 prefill | T00 | DONE |
 | [T02](T02-python-decode.md) | Python 缓存 decode | T01 | TODO |
 | [T03](T03-compressed-kv.md) | 压缩 KV 与 Python 优化 | T02 | TODO |
 | [T04](T04-batching-chunked-prefill.md) | 批处理与 chunked prefill | T03 | TODO |

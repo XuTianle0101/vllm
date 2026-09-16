@@ -1,0 +1,41 @@
+{
+  "raw_directory": "/workspace/volume/h20-data/xutianle/KSA/results/T01/a100-20260916T063504Z/raw",
+  "files": {
+    "correctness.json": {
+      "bytes": 897240,
+      "sha256": "ab7264365a1af372cbd4c001c8892a8521ecb070a87d26eda78432f6c8351e5c"
+    },
+    "environment.json": {
+      "bytes": 10563,
+      "sha256": "106106eb6ec517d68d584a5b855bc9f542de04634bbadb15fd91ad925a1114aa"
+    },
+    "hf-fp32-1025.pt": {
+      "bytes": 425660555,
+      "sha256": "4a94f23e00c3597a9a0d4568c9bd1cefe808e34cc64b4317469f291d8329a34b"
+    },
+    "hf-fp32-17.pt": {
+      "bytes": 7622581,
+      "sha256": "dcedaf6e3ef9a3343deb57b0e8a2ff9de979310163e1e2a588a687d70fbd75e5"
+    },
+    "hf-reference.log": {
+      "bytes": 865,
+      "sha256": "772936fb31085ac043bed22387a03a5312ec995ba668096a44bee2b9dc4a7b3f"
+    },
+    "inputs.json": {
+      "bytes": 4048273,
+      "sha256": "924d6d44150dd8a04d86158f052ca096224e8003f061fe08c2d72233ad66960b"
+    },
+    "run.log": {
+      "bytes": 4173,
+      "sha256": "99872d2cf75ebd4d271c2b3b15abef2bf9fbf571b2db7dbe9e760ca56bc98923"
+    },
+    "summary.md": {
+      "bytes": 289,
+      "sha256": "a5608293ff3720e0b65862c9346f1685a25fc549a6526c34fb4c40776d08134d"
+    },
+    "timing.json": {
+      "bytes": 3854,
+      "sha256": "5c1755a4c5dcd08766e1696d7c0c4ba4f26012e030ba1ccc4d0b6e321b13f77d"
+    }
+  }
+}

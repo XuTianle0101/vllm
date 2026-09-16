@@ -1,0 +1,14 @@
+{
+  "error": "Traceback (most recent call last):\n  File \"/workspace/volume/h20-data/xutianle/KSA/vllm/benchmarks/ksa/prefill.py\", line 453, in main\n    run(args)\n  File \"/workspace/volume/h20-data/xutianle/KSA/vllm/benchmarks/ksa/prefill.py\", line 423, in run\n    raise RuntimeError(\"T01 frozen acceptance gates failed; see correctness.json\")\nRuntimeError: T01 frozen acceptance gates failed; see correctness.json\n",
+  "command": [
+    "benchmarks/ksa/prefill.py",
+    "--model",
+    "/workspace/volume/h20-data/xutianle/KSA/models/KSA-4B-base",
+    "--baseline",
+    "/workspace/volume/h20-data/xutianle/KSA/results/T00/a100-repaired-20260916T032325Z-0eea77a7ba21/raw",
+    "--expected-sha",
+    "29a5e5e320cb27c6aa4c4c063a4ba210f5baff30",
+    "--output",
+    "docs/ksa/results/T01/a100-20260916T063119Z"
+  ]
+}

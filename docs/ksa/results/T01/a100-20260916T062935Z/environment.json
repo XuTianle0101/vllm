@@ -1,0 +1,40 @@
+{
+  "ticket": "T01",
+  "git_sha": "566168fe6183522e2f3585ccdc40fa01cc4e1aa8",
+  "baseline_id": "T00-305bf8f9dc429f1af60e",
+  "tolerance_id": "T00-tol-fbd0eb931ac1c7153403",
+  "gpu": "NVIDIA A100-SXM4-80GB",
+  "torch": "2.11.0+cu130",
+  "cuda": "13.0",
+  "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+  "driver": "575.57.08",
+  "model_hashes": {
+    "config.json": "cdca8ccf63ed4509876f5fca6ecb8c582294e7c06a6f24ab9db0da69fac4bf68",
+    "configuration.json": "f888421726665e8a84b738eed42a64875aed79de8be7daade851ac8bf4c0cef9",
+    "generation_config.json": "a9df559aab3dc02dda928f300ebcc82e0de667281cdf35fade8470be5bd67103",
+    "merges.txt": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+    "model-00000-of-00002.safetensors": "c091f250701f2f187b3ecb7d4842d14f54d2c2e1224ec0a7b118628b6a0f39bb",
+    "model-00001-of-00002.safetensors": "69b402da8cb159db5ee832f2f7350ed28c43746f7baf7d5c7ad079ac4e18d745",
+    "model.safetensors.index.json": "5d0f74b21f872027cfc3c45253b773dfeeb778da00dae2ec4a5b1442fa661bab",
+    "modeling_qwen3.py": "458fd5044bfcfcac0448897bde2f5b8ed08b98d6376e05b7eafdf8d6f2467671",
+    "summary_context.py": "ebdc855446a81fa9ce394c5c84705cc5ada31167b119a751f604147861fe7c97",
+    "tokenizer.json": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+    "tokenizer_config.json": "3c04ed3ca964ea2f6b2b5faf0dc4d31aec1cb1e8b4bcf63f402d295046b422b5",
+    "vocab.json": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+  },
+  "max_text_tokens": 4096,
+  "attention": "PyTorch SDPA explicit mask",
+  "decode": "unsupported",
+  "command": [
+    "benchmarks/ksa/prefill.py",
+    "--model",
+    "/workspace/volume/h20-data/xutianle/KSA/models/KSA-4B-base",
+    "--baseline",
+    "/workspace/volume/h20-data/xutianle/KSA/results/T00/a100-repaired-20260916T032325Z-0eea77a7ba21/raw",
+    "--expected-sha",
+    "566168fe6183522e2f3585ccdc40fa01cc4e1aa8",
+    "--output",
+    "docs/ksa/results/T01/a100-20260916T062935Z"
+  ],
+  "summary_self_kv": "visible (frozen T00 semantics)"
+}

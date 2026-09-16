@@ -1,0 +1,14 @@
+{
+  "error": "Traceback (most recent call last):\n  File \"/workspace/volume/h20-data/xutianle/KSA/vllm/benchmarks/ksa/prefill.py\", line 442, in main\n    run(args)\n  File \"/workspace/volume/h20-data/xutianle/KSA/vllm/benchmarks/ksa/prefill.py\", line 261, in run\n    result = compare(\n             ^^^^^^^^\n  File \"/workspace/volume/h20-data/xutianle/KSA/vllm/benchmarks/ksa/prefill.py\", line 91, in compare\n    result = metrics(torch, expected, actual)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/volume/h20-data/xutianle/KSA/vllm/benchmarks/ksa/baseline.py\", line 209, in metrics\n    delta = a - b\n            ~~^~~\nRuntimeError: The size of tensor a (151936) must match the size of tensor b (151937) at non-singleton dimension 1\n",
+  "command": [
+    "benchmarks/ksa/prefill.py",
+    "--model",
+    "/workspace/volume/h20-data/xutianle/KSA/models/KSA-4B-base",
+    "--baseline",
+    "/workspace/volume/h20-data/xutianle/KSA/results/T00/a100-repaired-20260916T032325Z-0eea77a7ba21/raw",
+    "--expected-sha",
+    "566168fe6183522e2f3585ccdc40fa01cc4e1aa8",
+    "--output",
+    "docs/ksa/results/T01/a100-20260916T062935Z"
+  ]
+}
