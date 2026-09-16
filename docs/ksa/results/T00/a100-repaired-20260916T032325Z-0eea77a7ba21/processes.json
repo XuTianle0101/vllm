@@ -1,0 +1,157 @@
+[
+  {
+    "mode": "calibration",
+    "case_id": "length-17",
+    "returncode": 0
+  },
+  {
+    "mode": "calibration",
+    "case_id": "length-1025",
+    "returncode": 0
+  },
+  {
+    "mode": "calibration",
+    "case_id": "length-4096",
+    "returncode": 0
+  },
+  {
+    "mode": "performance",
+    "case_id": "length-4096",
+    "returncode": 0
+  },
+  {
+    "mode": "performance",
+    "case_id": "length-16384",
+    "returncode": 0
+  },
+  {
+    "mode": "performance",
+    "case_id": "length-32768",
+    "returncode": 0
+  },
+  {
+    "mode": "performance",
+    "case_id": "length-65536",
+    "returncode": 0
+  },
+  {
+    "mode": "performance",
+    "case_id": "length-130944",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-1",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-7",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-8",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-9",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-15",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-16",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-17",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-1023",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-1024",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-1025",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-1031",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-1032",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-1033",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-4096",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-16384",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-32768",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-65536",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "length-130944",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "english",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "chinese",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "retrieval-4096",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "retrieval-32768",
+    "returncode": 0
+  },
+  {
+    "mode": "correctness",
+    "case_id": "retrieval-65536",
+    "returncode": 0
+  }
+]

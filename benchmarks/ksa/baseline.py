@@ -58,20 +58,9 @@ def command(*args):
 
 
 def install_transformers_compat():
-    """Bridge KSA's factory-style decorator to newer Transformers releases."""
-    from transformers.utils import generic
+    from compat import install
 
-    original = generic.check_model_inputs
-    if getattr(original, "_ksa_compat", False):
-        return
-
-    def compatible(func=None):
-        if func is None:
-            return lambda wrapped: original(wrapped)
-        return original(func)
-
-    compatible._ksa_compat = True
-    generic.check_model_inputs = compatible
+    install()
 
 
 def make_inputs(tokenizer):
@@ -89,7 +78,7 @@ def make_inputs(tokenizer):
     ]:
         cases[name] = {
             "input_ids": tokenizer.encode(prompt, add_special_tokens=False),
-            "teacher_ids": unit[:24],
+            "teacher_ids": (unit * (24 // len(unit) + 1))[:24],
         }
     # Deterministic retrieval input; the expected answer is recorded, not assumed.
     needle = tokenizer.encode("\nThe secret code is 73921.\n", add_special_tokens=False)
@@ -103,7 +92,7 @@ def make_inputs(tokenizer):
         split = count // 4
         cases[f"retrieval-{length}"] = {
             "input_ids": body[:split] + needle + body[split:] + question,
-            "teacher_ids": unit[:24],
+            "teacher_ids": (unit * (24 // len(unit) + 1))[:24],
             "expected_answer": "73921",
         }
     return cases
@@ -128,9 +117,16 @@ def collect(args, torch, tokenizer):
         "hf_release_revision": HF_REVISION,
         "input_hash": digest(inputs),
         "generation": GENERATION,
-        "profile": "official-flex-cu128",
+        "profile": "official-flex-cu128-repaired-v1",
+        "compat_sha256": file_hash(Path(__file__).with_name("compat.py")),
+        "matrix_sha256": file_hash(Path(__file__).with_name("run_matrix.py")),
+        "assessment_sha256": file_hash(Path(__file__).with_name("assess.py")),
+        "dependency_lock_sha256": file_hash(
+            Path(__file__).with_name("requirements.lock")
+        ),
         "generation_cache": "explicit_official_Qwen3RingBufferCache",
-        "dtype": "bfloat16",
+        "dtype": args.precision,
+        "fp32_calibration_backend": "bounded_dense_mask_oracle",
         "torch_cuda": torch.version.cuda,
         "harness_sha256": file_hash(Path(__file__)),
         "gpu": torch.cuda.get_device_name(),
@@ -162,8 +158,8 @@ def collect(args, torch, tokenizer):
         "driver_version": command(
             "nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"
         ),
-        "dtype": "bfloat16",
-        "kv_dtype": "bfloat16",
+        "dtype": args.precision,
+        "kv_dtype": args.precision,
         "tensor_parallel_size": 1,
         "lock": lock,
         "tokenizer_hashes": {
@@ -177,7 +173,7 @@ def collect(args, torch, tokenizer):
                 "torch": torch.__version__,
                 "cuda_runtime": torch.version.cuda,
                 "transformers": metadata.version("transformers"),
-                "summary_kernel": "summary_attn 0.3.0 / official FlexAttention",
+                "summary_kernel": "summary_attn 0.3.0 + explicit BlockMask repair",
             },
             "vllm": None,
         },
@@ -208,6 +204,7 @@ def metrics(torch, expected, actual):
             "top1_agreement": None,
             "first_mismatch": None,
             "min_top1_margin": None,
+            "max_mismatch_margin": None,
         }
     delta = a - b
     top_a, top_b = a.argmax(-1), b.argmax(-1)
@@ -221,7 +218,11 @@ def metrics(torch, expected, actual):
             "actual_token": top_b[index].item(),
             "top1_margin": a[index].topk(2).values.diff().abs().item(),
         }
+    margins = a.topk(2).values.diff(dim=-1).abs().squeeze(-1)
     return {
+        "max_mismatch_margin": margins[top_a != top_b].max().item()
+        if len(mismatches)
+        else 0.0,
         "logits_max_abs_error": delta.abs().max().item(),
         "logits_rmse": delta.square().mean().sqrt().item(),
         "logprobs_max_abs_error": (a.log_softmax(-1) - b.log_softmax(-1))
@@ -255,6 +256,47 @@ def semantics_probe(torch, args):
                 "window": window,
                 "max_abs_error": error,
                 "status": "pass" if error <= 0.01 else "fail",
+            }
+        )
+    # Independent dense oracle only for small correctness probes, never timing.
+    for length, window in [(144, 2), (1153, 128)]:
+        q = torch.randn((1, length, 4, 32), device="cuda", dtype=torch.bfloat16)
+        k = torch.randn((1, length, 2, 32), device="cuda", dtype=torch.bfloat16)
+        v = torch.randn_like(k)
+        pos = torch.arange(length, device="cuda")
+        summary = pos % 9 == 8
+        output, _ = summary_attn_func(q, k, v, 8, 1, window, summary_pos=summary)
+        key_pos = torch.cat([pos[summary], pos])
+        prefix = int(summary.sum())
+        query = pos[:, None]
+        key = key_pos[None, :]
+        distance = query // 9 - key // 9
+        is_prefix = torch.arange(len(key_pos), device="cuda")[None, :] < prefix
+        summary_query = query % 9 == 8
+        mask = (key <= query) & (
+            (summary_query & (distance == 0) & ~is_prefix)
+            | (
+                ~summary_query
+                & (
+                    ((key % 9 != 8) & (distance <= window))
+                    | (is_prefix & (distance > window))
+                )
+            )
+        )
+        keys = torch.cat([k[:, summary], k], dim=1).repeat_interleave(2, dim=2)
+        values = torch.cat([v[:, summary], v], dim=1).repeat_interleave(2, dim=2)
+        scores = q.transpose(1, 2).float() @ keys.transpose(1, 2).float().transpose(
+            -1, -2
+        )
+        weights = (scores / (32**0.5)).masked_fill(~mask, float("-inf")).softmax(-1)
+        expected = (weights @ values.transpose(1, 2).float()).transpose(1, 2)
+        error = (output.float() - expected).abs().max().item()
+        results.append(
+            {
+                "length": length,
+                "window": window,
+                "max_abs_error": error,
+                "status": "pass" if error <= 0.03125 else "fail",
             }
         )
     write_json(
@@ -301,6 +343,8 @@ def correctness(torch, model, tokenizer, inputs, args, common):
         "cases": [],
     }
     for name, case in inputs.items():
+        if getattr(args, "case", None) and name != args.case:
+            continue
         logging.info("Correctness %s", name)
         row = {
             "case_id": name,
@@ -359,7 +403,12 @@ def correctness(torch, model, tokenizer, inputs, args, common):
                 )
         except Exception as exc:
             logging.exception("Correctness failed: %s", name)
-            row.update(status="error", reason=f"{type(exc).__name__}: {exc}")
+            row.update(
+                status="oom"
+                if isinstance(exc, torch.cuda.OutOfMemoryError)
+                else "error",
+                reason=f"{type(exc).__name__}: {exc}",
+            )
             row["output_tokens"] = None
         report["cases"].append(row)
         write_json(args.output / "correctness.json", report)
@@ -431,6 +480,8 @@ def performance(torch, model, inputs, args, common, load_ms):
         writer = csv.DictWriter(stream, fieldnames=columns)
         writer.writeheader()
         for length in LONG:
+            if getattr(args, "case", None) and args.case != f"length-{length}":
+                continue
             logging.info("Performance length %s", length)
             ids = torch.tensor([inputs[f"length-{length}"]["input_ids"]], device="cuda")
             for rep in range(-1, 5):
@@ -475,6 +526,10 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
         "--mode", choices=["all", "correctness", "performance"], default="all"
+    )
+    parser.add_argument("--case", help="Run one case in an isolated process")
+    parser.add_argument(
+        "--precision", choices=["bfloat16", "float32"], default="bfloat16"
     )
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
@@ -535,6 +590,16 @@ def main():
             )
         with torch.inference_mode():
             semantics_probe(torch, args)
+        if args.precision == "float32":
+            if args.mode != "correctness" or args.case not in {
+                "length-17",
+                "length-1025",
+                "length-4096",
+            }:
+                raise ValueError("FP32 is reserved for the short calibration cases")
+            from compat import install_fp32_calibration
+
+            install_fp32_calibration()
         torch.accelerator.synchronize()
         start = time.perf_counter()
         model = AutoModelForCausalLM.from_pretrained(
@@ -542,7 +607,7 @@ def main():
             config=config,
             trust_remote_code=True,
             local_files_only=True,
-            torch_dtype=torch.bfloat16,
+            torch_dtype=getattr(torch, args.precision),
             device_map="cuda:0",
         ).eval()
         torch.accelerator.synchronize()

@@ -1,0 +1,965 @@
+{
+  "workers": [
+    {
+      "worker": "calibration-length-17",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "calibration-length-1025",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "calibration-length-4096",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "performance-length-4096",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "performance-length-16384",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "performance-length-32768",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "performance-length-65536",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "performance-length-130944",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-1",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-7",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-8",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-9",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-15",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-16",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-17",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-1023",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-1024",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-1025",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-1031",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-1032",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-1033",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-4096",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-16384",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-32768",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-65536",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-length-130944",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-english",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-chinese",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-retrieval-4096",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-retrieval-32768",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    },
+    {
+      "worker": "correctness-retrieval-65536",
+      "result": {
+        "probe": "summary sees self and 8 text rows; text excludes local summaries",
+        "analytic_atol": 0.01,
+        "cases": [
+          {
+            "window": 128,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "window": 16768,
+            "max_abs_error": 0.0,
+            "status": "pass"
+          },
+          {
+            "length": 144,
+            "window": 2,
+            "max_abs_error": 0.004834771156311035,
+            "status": "pass"
+          },
+          {
+            "length": 1153,
+            "window": 128,
+            "max_abs_error": 0.007328033447265625,
+            "status": "pass"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+test_acceptance_rejects_error_outside_independent_calibration (test_baseline.BaselineContractTest.test_acceptance_rejects_error_outside_independent_calibration) ... ok
+test_baseline_identity_tracks_input_and_code_changes (test_baseline.BaselineContractTest.test_baseline_identity_tracks_input_and_code_changes) ... ok
+test_generate_supplies_the_official_ring_cache (test_baseline.BaselineContractTest.test_generate_supplies_the_official_ring_cache) ... ok
+test_matrix_continues_after_worker_crash_and_records_missing_rows (test_baseline.BaselineContractTest.test_matrix_continues_after_worker_crash_and_records_missing_rows) ... Running performance length-4096
+Running correctness length-4096
+Running correctness english
+Running correctness chinese
+Running correctness retrieval-4096
+Running correctness retrieval-32768
+Running correctness retrieval-65536
+ok
+test_matrix_preserves_lengths_and_context_budget (test_baseline.BaselineContractTest.test_matrix_preserves_lengths_and_context_budget) ... ok
+test_oom_row_survives_and_warmup_is_not_a_measured_repetition (test_baseline.BaselineContractTest.test_oom_row_survives_and_warmup_is_not_a_measured_repetition) ... ok
+test_repaired_mask_visits_full_tiles_only_once (test_baseline.BaselineContractTest.test_repaired_mask_visits_full_tiles_only_once)
+BlockMask full tiles must not also appear among partial tiles. ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 3.913s
+
+OK

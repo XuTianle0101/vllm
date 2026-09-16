@@ -23,7 +23,7 @@ collect_results() {
     exit "$code"
 }
 trap collect_results EXIT
-uv venv --python 3.12 .venv-ksa-hf
+uv venv --allow-existing --python 3.12 .venv-ksa-hf
 uv pip sync --python .venv-ksa-hf/bin/python --torch-backend cu128 --require-hashes benchmarks/ksa/requirements.lock
 uv pip freeze --python .venv-ksa-hf/bin/python > "${result_dir}.packages.txt"
-.venv-ksa-hf/bin/python benchmarks/ksa/baseline.py --model "$model_dir" --output "$result_dir"
+.venv-ksa-hf/bin/python benchmarks/ksa/run_matrix.py --model "$model_dir" --output "$result_dir"

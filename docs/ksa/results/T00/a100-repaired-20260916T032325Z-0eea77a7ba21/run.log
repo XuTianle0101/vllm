@@ -1,0 +1,39 @@
+Using CPython 3.12.13 interpreter at: /usr/bin/python3.12
+Creating virtual environment at: .venv-ksa-hf
+Activate with: source .venv-ksa-hf/bin/activate
+Using Python 3.12.13 environment at: .venv-ksa-hf
+Resolved 44 packages in 733ms
+Checked 44 packages in 8ms
+Using Python 3.12.13 environment at: .venv-ksa-hf
+Running calibration length-17
+Running calibration length-1025
+Running calibration length-4096
+Running performance length-4096
+Running performance length-16384
+Running performance length-32768
+Running performance length-65536
+Running performance length-130944
+Running correctness length-1
+Running correctness length-7
+Running correctness length-8
+Running correctness length-9
+Running correctness length-15
+Running correctness length-16
+Running correctness length-17
+Running correctness length-1023
+Running correctness length-1024
+Running correctness length-1025
+Running correctness length-1031
+Running correctness length-1032
+Running correctness length-1033
+Running correctness length-4096
+Running correctness length-16384
+Running correctness length-32768
+Running correctness length-65536
+Running correctness length-130944
+Running correctness english
+Running correctness chinese
+Running correctness retrieval-4096
+Running correctness retrieval-32768
+Running correctness retrieval-65536
+launcher_exit_code=0

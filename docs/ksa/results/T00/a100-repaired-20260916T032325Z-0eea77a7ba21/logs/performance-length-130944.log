@@ -1,0 +1,5 @@
+`torch_dtype` is deprecated! Use `dtype` instead!
+🚨 `summary_ctx` is part of Qwen3Model.forward's signature, but not documented. Make sure to add it to the docstring of the function in /root/.cache/huggingface/modules/transformers_modules/KSA_hyphen_4B_hyphen_base/modeling_qwen3.py.
+🚨 `summary_ctx` is part of Qwen3ForCausalLM.forward's signature, but not documented. Make sure to add it to the docstring of the function in /root/.cache/huggingface/modules/transformers_modules/KSA_hyphen_4B_hyphen_base/modeling_qwen3.py.
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:00<00:00,  1.33it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:01<00:00,  1.36it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:01<00:00,  1.36it/s]
+INFO:root:Performance length 130944
