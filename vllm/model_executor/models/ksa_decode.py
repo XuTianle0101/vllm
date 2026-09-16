@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
-"""Eager, single-request KSA generation with full-history Python KV storage."""
+"""Eager, single-request KSA generation with windowed KV storage."""
 
 from dataclasses import dataclass, field
 
@@ -15,6 +15,7 @@ class KSACache:
 
     text_tokens: int = 0
     layers: list[tuple[torch.Tensor, torch.Tensor]] = field(default_factory=list)
+    layouts: dict[int, tuple[torch.Tensor, torch.Tensor]] = field(default_factory=dict)
     owner: object | None = None
 
     @property
@@ -24,11 +25,32 @@ class KSACache:
     def clear(self):
         self.text_tokens = 0
         self.layers.clear()
+        self.layouts.clear()
         self.owner = None
+
+
+def retained_layout(text_tokens, window, device=None):
+    """Positions of completed summaries and text needed by the next query."""
+    positions, _, summary = cached_layout(0, text_tokens, device)
+    first_block = max(0, text_tokens // 8 - window)
+    keep = summary | (positions // 8 >= first_block)
+    return positions[keep], summary[keep], keep
 
 
 def cached_layout(start, length, device=None):
     """Expand only new text, placing summaries at absolute block ends."""
+    if start == 0:
+        rows = torch.arange(length + length // 8, device=device)
+        summary = rows % 9 == 8
+        positions = rows - rows // 9 - summary.long()
+        return positions, rows[~summary], summary
+    if length == 1:
+        positions = torch.full((1 + (start % 8 == 7),), start, device=device)
+        rows = torch.zeros(1, dtype=torch.long, device=device)
+        summary = torch.zeros(len(positions), dtype=torch.bool, device=device)
+        if len(positions) == 2:
+            summary[1] = True
+        return positions, rows, summary
     text = torch.arange(start, start + length, device=device)
     counts = 1 + ((text + 1) % 8 == 0).long()
     positions = text.repeat_interleave(counts)

@@ -80,6 +80,8 @@ class KSAForCausalLM(Qwen3ForCausalLM):
         if start:
             if len(cache.layers) != len(self.model.layers):
                 raise ValueError("incomplete KSA layer cache")
+            if cache.layouts.keys() != set(self.windows):
+                raise ValueError("incomplete KSA cache layouts")
             pos, rows, summary = cached_layout(
                 start, positions.numel(), positions.device
             )
@@ -108,14 +110,37 @@ class KSAForCausalLM(Qwen3ForCausalLM):
             ids = positions.new_full(pos.shape, self.config.summary_token_begin)
             hidden = self.embed_input_ids(ids)
             hidden[rows] = inputs_embeds
-        if start:
-            key_pos, _, key_summary = cached_layout(0, end, positions.device)
-            masks = {
-                w: visibility_mask(pos, summary, w, key_pos, key_summary)
-                for w in set(self.windows)
-            }
-        else:
-            masks = {w: visibility_mask(pos, summary, w) for w in set(self.windows)}
+        masks = {}
+        retained = {}
+        old_lengths = {}
+        pending_layouts = {}
+        for window in set(self.windows):
+            if start:
+                old_pos, old_summary = cache.layouts[window]
+                old_lengths[window] = len(old_pos)
+                key_pos = torch.cat((old_pos, pos))
+                key_summary = torch.cat((old_summary, summary))
+                masks[window] = visibility_mask(
+                    pos, summary, window, key_pos, key_summary
+                )
+            else:
+                key_pos, key_summary = pos, summary
+                masks[window] = visibility_mask(pos, summary, window)
+            if cache is not None:
+                first_block = max(0, end // 8 - window)
+                old_first_block = max(0, start // 8 - window)
+                if first_block == old_first_block:
+                    retained[window] = None
+                elif start:
+                    retained[window] = key_summary | (key_pos // 8 >= first_block)
+                else:
+                    retained[window] = summary | (pos // 8 >= first_block)
+                keep = retained[window]
+                pending_layouts[window] = (
+                    (key_pos, key_summary)
+                    if keep is None
+                    else (key_pos[keep], key_summary[keep])
+                )
         pending = []
         residual = None
         for index, layer in enumerate(self.model.layers):
@@ -134,11 +159,15 @@ class KSAForCausalLM(Qwen3ForCausalLM):
             v = v.reshape(-1, attn.num_kv_heads, attn.head_dim)
             if start:
                 old_k, old_v = cache.layers[index]
-                if old_k.shape[0] != cache.internal_rows or old_v.shape != old_k.shape:
+                if (
+                    old_k.shape[0] != old_lengths[self.windows[index]]
+                    or old_v.shape != old_k.shape
+                ):
                     raise ValueError("KSA cache row count does not match text count")
                 k, v = torch.cat((old_k, k)), torch.cat((old_v, v))
             if cache is not None:
-                pending.append((k, v))
+                keep = retained[self.windows[index]]
+                pending.append((k, v) if keep is None else (k[keep], v[keep]))
             mask = masks[self.windows[index]]
             output = prefill_attention(
                 q.reshape(-1, attn.num_heads, attn.head_dim),
@@ -155,6 +184,7 @@ class KSAForCausalLM(Qwen3ForCausalLM):
         hidden, _ = self.model.norm(hidden, residual)
         if cache is not None:
             cache.layers = pending
+            cache.layouts = pending_layouts
             cache.text_tokens = end
             cache.owner = self
         return hidden[rows]

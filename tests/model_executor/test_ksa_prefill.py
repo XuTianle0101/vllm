@@ -297,7 +297,12 @@ def test_cached_decode_matches_full_prefill_across_blocks(tiny_model, length):
             )
             assert cache.text_tokens == position + 1
             assert cache.internal_rows == position + 1 + (position + 1) // 8
-            assert all(k.shape[0] == cache.internal_rows for k, v in cache.layers)
+            from vllm.model_executor.models.ksa_decode import retained_layout
+
+            assert all(
+                k.shape[0] == len(retained_layout(cache.text_tokens, window)[0])
+                for (k, _), window in zip(cache.layers, model.windows)
+            )
             assert actual.shape == (1, 32)
         old_count = cache.text_tokens
         with pytest.raises(ValueError, match="contiguous"):
@@ -309,6 +314,45 @@ def test_cached_decode_matches_full_prefill_across_blocks(tiny_model, length):
         torch.testing.assert_close(
             model(ids[:8], torch.arange(8), cache=cache), expected[:8]
         )
+
+
+def test_retained_kv_growth_and_release():
+    """Window text is bounded while summary storage grows one row per block."""
+    from vllm.model_executor.models.ksa_decode import KSACache, retained_layout
+
+    for length in (1023, 1024, 1025, 1032, 4096, 8192):
+        for window in (0, 1, 128, 16768):
+            positions, summary, _ = retained_layout(length, window)
+            expected_text = min(length, (window + 1) * 8 + length % 8)
+            assert len(positions) <= length // 8 + expected_text
+            assert int(summary.sum()) == length // 8
+            assert positions[~summary].unique().numel() == (~summary).sum()
+    cache = KSACache(text_tokens=8192, layers=[(torch.ones(1), torch.ones(1))])
+    cache.clear()
+    assert (
+        cache.text_tokens == 0
+        and cache.layers == []
+        and cache.layouts == {}
+        and cache.owner is None
+    )
+
+
+def test_cached_decode_accepts_noncontiguous_kv_storage(tiny_model):
+    """KV reads must honor tensor strides after a cache page is remapped."""
+    from vllm.model_executor.models.ksa_decode import KSACache
+
+    ids = torch.arange(17) % 63
+    cache = KSACache()
+    with torch.inference_mode():
+        expected = tiny_model(ids, torch.arange(17))[-1:]
+        tiny_model(ids[:16], torch.arange(16), cache=cache)
+        cache.layers = [
+            (torch.stack((k, k), 1)[:, 0], torch.stack((v, v), 1)[:, 0])
+            for k, v in cache.layers
+        ]
+        assert all(not k.is_contiguous() for k, _ in cache.layers)
+        actual = tiny_model(ids[16:], torch.tensor([16]), cache=cache)
+    torch.testing.assert_close(actual, expected, atol=2e-6, rtol=1e-5)
 
 
 def test_generation_stops_counts_and_filters_summary_rows(tiny_model, monkeypatch):
@@ -350,7 +394,9 @@ def test_generation_stops_counts_and_filters_summary_rows(tiny_model, monkeypatc
     with torch.inference_mode():
         tiny_model(ids, torch.arange(8), cache=cache)
         old_layers = cache.layers
+        old_layouts = cache.layouts
         monkeypatch.setattr(tiny_model.model.layers[-1].mlp, "forward", fail)
         with pytest.raises(RuntimeError, match="injected"):
             tiny_model(ids[:1], torch.tensor([8]), cache=cache)
-        assert cache.layers is old_layers and cache.text_tokens == 8
+        assert cache.layers is old_layers and cache.layouts is old_layouts
+        assert cache.text_tokens == 8

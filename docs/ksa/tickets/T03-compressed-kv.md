@@ -1,6 +1,6 @@
 # T03：压缩 KV 与 Python 优化
 
-- 状态：TODO
+- 状态：IN_PROGRESS（Python 缓存压缩与 A100 开发测量完成；分页接入未完成）
 - 依赖：T02 DONE
 - 目标：在精度不变的前提下实现真实 KV 压缩并减少 Python 路径开销。
 
@@ -20,8 +20,10 @@
 
 ## 交付记录
 
-- 提交 SHA：待实现
-- 本地检查：未执行
-- 服务器命令：待脚本实现后填写
-- 结果路径：未生成
-- 结论：未验收
+- 实测代码 SHA：`ee0c2b8e90d0e14c478d01cdaa19602c8d3a89cc`
+- 本地检查：44 项 CPU 测试、Ruff check/format 通过
+- 服务器命令：[T03 开发测量与复现命令](../t03-compressed-kv.md)
+- 结果路径：`/workspace/volume/h20-data/xutianle/KSA/results/T03/a100-ee0c2b8/`
+- 结论：17/17 教师强制案例通过，4K 峰值显存下降约 1.50 GiB；TPOT 与 T02
+  持平，不宣称加速。vLLM 分页 cache spec、容量规划和生命周期未接入，
+  因此 T03 未验收；详细差距见开发测量文档。
