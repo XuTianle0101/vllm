@@ -57,3 +57,18 @@ OMP_NUM_THREADS=1 .venv/bin/python benchmarks/ksa/cudagraph_v1.py \
 `startup.json`、`status.json`，以及 V1 `results.json`、logits 文件和运行日志。
 单算子加速不能代替整模型验收；`status.json` 的 pass 表示精度实验执行通过，
 各路径性能收益必须另据五次测量判断。A100 结果不能作为 SM120/RTX 5090 验收。
+
+T06 的标准 V1 命令额外加 `--compare-t05`，会将首轮 eager 设置为 T05 SDPA，
+随后两轮 graph 使用 Triton。这也覆盖真实调度器的 257-token chunked prefill、
+独立 text/summary 页池与请求重排。生成轨迹分歧后只比较共同前缀，不能混比后续 logits。
+
+完整矩阵结束后运行性能门禁汇总（不接受缺失形状、少于五次或混入捕获的结果）：
+
+```bash
+.venv/bin/python benchmarks/ksa/summarize_attention_kernels.py \
+  --raw ../results/T06/a100-final --output ../results/T06/a100-summary.json
+```
+
+脚本要求每个形状的 prefill、eager decode、graph decode 均满足 Triton 最慢重复
+仍快于 T05 最快重复，作为超过本次观测波动的保守门禁；同时核验冻结精度与页归还。
+单算子的最终计时在 CUDA Graph 中用事件测量，另用墙钟报告 metadata 更新开销。

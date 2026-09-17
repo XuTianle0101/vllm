@@ -13,6 +13,10 @@ from decode import validate
 from prefill import ROOT, compare
 
 
+def set_attention(worker, enabled):
+    worker.model_runner.model.triton_attention = enabled
+
+
 def set_mode(worker, mode):
     runner = worker.model_runner
     if not hasattr(runner, "ksa_saved_graphs"):
@@ -75,6 +79,8 @@ def run(args):
     results, captures, runtime = [], [], []
     try:
         for repeat, mode in enumerate(("eager", "graph", "graph")):
+            if args.compare_t05:
+                llm.collective_rpc(set_attention, args=(mode != "eager",))
             llm.collective_rpc(set_mode, args=(mode,))
             order = list(range(4)) if repeat % 2 == 0 else list(reversed(range(4)))
             outputs = llm.generate(
@@ -123,6 +129,7 @@ def run(args):
             dict(
                 status=status,
                 git_sha=args.expected_sha,
+                reference="T05 attention" if args.compare_t05 else "eager",
                 cases=rows,
                 runtime=runtime,
                 generations=results,
@@ -140,4 +147,9 @@ if __name__ == "__main__":
     parser.add_argument("--baseline", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--expected-sha", required=True)
+    parser.add_argument(
+        "--compare-t05",
+        action="store_true",
+        help="Compare Triton graphs to T05 SDPA on real V1 pages",
+    )
     run(parser.parse_args())
