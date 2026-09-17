@@ -5,6 +5,7 @@
 import argparse
 import os
 import sys
+import time
 from pathlib import Path
 
 import torch
@@ -54,6 +55,13 @@ def export(worker, path):
         replays=runner.ksa_saved_graphs.replays,
         captures=len(runner.ksa_saved_graphs.startup),
     )
+
+
+def set_timing_mode(worker, mode):
+    runner = worker.model_runner
+    runner.model.triton_attention = mode != "T05_eager"
+    runner.ksa_graphs = runner.ksa_saved_graphs if mode == "triton_graph" else None
+    return len(runner.ksa_saved_graphs.startup)
 
 
 def run(args):
@@ -137,6 +145,36 @@ def run(args):
         )
         if status != "pass":
             raise AssertionError("V1 graph validation failed")
+        if args.timing_repeats:
+            timings = []
+            tokens = inputs["length-1024"]["input_ids"]
+            timed_prompts = [
+                {"prompt_token_ids": tokens[: len(tokens) - i]} for i in range(4)
+            ]
+            for mode in ("T05_eager", "triton_eager", "triton_graph"):
+                for repeat in range(-1, args.timing_repeats):
+                    before = llm.collective_rpc(set_timing_mode, args=(mode,))[0]
+                    begin = time.perf_counter()
+                    output = llm.generate(
+                        timed_prompts,
+                        SamplingParams(temperature=0, max_tokens=32, ignore_eos=True),
+                        use_tqdm=False,
+                    )
+                    elapsed = (time.perf_counter() - begin) * 1000
+                    after = llm.collective_rpc(set_timing_mode, args=(mode,))[0]
+                    if [len(o.outputs[0].token_ids) for o in output] != [32] * 4:
+                        raise AssertionError("V1 timed generation truncated")
+                    timings.append(
+                        dict(
+                            mode=mode,
+                            repetition=repeat,
+                            elapsed_ms=elapsed,
+                            new_captures=after - before,
+                        )
+                    )
+                    write_json(args.output / "timing.json", timings)
+                print(f"V1 timing {mode}", flush=True)
+
     finally:
         llm.llm_engine.engine_core.shutdown()
 
@@ -152,4 +190,13 @@ if __name__ == "__main__":
         action="store_true",
         help="Compare Triton graphs to T05 SDPA on real V1 pages",
     )
-    run(parser.parse_args())
+    parser.add_argument(
+        "--timing-repeats",
+        type=int,
+        default=0,
+        help="Optional uninstrumented 1K/batch=4 service-core timings",
+    )
+    args = parser.parse_args()
+    if args.timing_repeats and args.timing_repeats < 5:
+        parser.error("require zero or at least five timing repeats")
+    run(args)

@@ -201,9 +201,10 @@ class KSAAttentionMetadata:
         )
         slot_parts, pos_parts, summary_parts, bases = [], [], [], []
         offset = 0
+        slot_orders = {}
         for layer, window in enumerate(self.windows):
             counts, starts = [], []
-            for state in states:
+            for request_index, state in enumerate(states):
                 cache = state["cache"]
                 count = state["old_lengths"].get(window, 0)
                 counts.append(count)
@@ -213,9 +214,17 @@ class KSAAttentionMetadata:
                     slots = cache.page_pool.read_slots[cache.request.request_id][layer]
                     if isinstance(slots, tuple):
                         text_slots, summary_slots, flags = slots
-                        slots = torch.empty_like(flags, dtype=torch.int64)
-                        slots[~flags] = text_slots
-                        slots[flags] = summary_slots
+                        layout_key = (request_index, window)
+                        if layout_key not in slot_orders:
+                            rank = flags.cumsum(0)
+                            slot_orders[layout_key] = torch.where(
+                                flags,
+                                rank + len(text_slots) - 1,
+                                torch.arange(count, device=flags.device) - rank,
+                            )
+                        slots = torch.cat((text_slots, summary_slots)).index_select(
+                            0, slot_orders[layout_key]
+                        )
                     slot_parts.append(slots)
                     positions, summary = cache.layouts[window]
                     pos_parts.append(positions)
