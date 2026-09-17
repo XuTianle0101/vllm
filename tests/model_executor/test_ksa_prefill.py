@@ -918,3 +918,64 @@ def test_v1_configuration_rejects_unsupported_execution(tiny_model, monkeypatch)
         patch.setenv("VLLM_USE_V2_MODEL_RUNNER", "1")
         with pytest.raises(ValueError, match="V2 model runner"):
             configure_ksa(config)
+
+
+@pytest.mark.parametrize("paged", [False, True])
+def test_decode_graph_buffers_reuse_slots_without_history_leaks(tiny_model, paged):
+    """Fixed buffers preserve mixed phases, eviction and replacement requests."""
+    from vllm.model_executor.models.ksa_decode import KSACache
+    from vllm.model_executor.models.ksa_graph import KSADecodeGraphs
+
+    model = tiny_model
+    runner = KSADecodeGraphs(model, enabled=False, max_graphs=2)
+    make_cache = model.new_cache if paged else KSACache
+    actual = [make_cache(), make_cache()]
+    expected = [KSACache(), KSACache()]
+    with torch.inference_mode():
+        try:
+            for i, length in enumerate((7, 12)):
+                ids = torch.arange(length) % 63
+                model(ids, torch.arange(length), cache=actual[i])
+                model(ids, torch.arange(length), cache=expected[i])
+            held_output = None
+            for step in range(24):
+                if step == 11:
+                    actual[0].clear()
+                    expected[0].clear()
+                    ids = torch.tensor([31, 32, 33])
+                    model(ids, torch.arange(3), cache=actual[0])
+                    model(ids, torch.arange(3), cache=expected[0])
+                order = [0, 1] if step % 2 else [1, 0]
+                batches = [
+                    [
+                        (
+                            torch.tensor([(step + i) % 63]),
+                            torch.tensor([caches[i].text_tokens]),
+                            caches[i],
+                        )
+                        for i in order
+                    ]
+                    for caches in (actual, expected)
+                ]
+                result = runner.forward_batch(batches[0])
+                reference = model.forward_batch(batches[1])
+                for value, ref in zip(result, reference):
+                    torch.testing.assert_close(value, ref, atol=2e-6, rtol=2e-5)
+                if held_output is not None:
+                    torch.testing.assert_close(*held_output, atol=0, rtol=0)
+                held_output = (result[0], result[0].clone())
+                for got, ref in zip(actual, expected):
+                    assert got.text_tokens == ref.text_tokens
+                    for layer, window in enumerate(model.windows):
+                        kv = (
+                            got.page_pool.read(got.request, layer, got.layouts[window])
+                            if paged
+                            else got.layers[layer]
+                        )
+                        for value, target in zip(kv, ref.layers[layer]):
+                            torch.testing.assert_close(
+                                value, target, atol=2e-6, rtol=2e-5
+                            )
+        finally:
+            for cache in actual + expected:
+                cache.clear()

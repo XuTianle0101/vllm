@@ -3,6 +3,7 @@
 """KSA eager prefill and cached decode using Qwen3 components and PyTorch attention."""
 
 import torch
+from torch.profiler import record_function
 
 from .ksa_decode import MAX_CACHED_TEXT_TOKENS, KSACache, cached_layout
 from .ksa_prefill import (
@@ -213,14 +214,15 @@ class KSAForCausalLM(Qwen3ForCausalLM):
             else:
                 hidden, residual = layer.input_layernorm(hidden, residual)
             attn = layer.self_attn
-            qkv, _ = attn.qkv_proj(hidden)
-            q, k, v = qkv.split([attn.q_size, attn.kv_size, attn.kv_size], -1)
-            q = attn.q_norm(q.reshape(-1, attn.num_heads, attn.head_dim))
-            k = attn.k_norm(k.reshape(-1, attn.num_kv_heads, attn.head_dim))
-            q, k = attn.rotary_emb(pos, q.flatten(1), k.flatten(1))
-            q = q.reshape(-1, attn.num_heads, attn.head_dim)
-            k = k.reshape(-1, attn.num_kv_heads, attn.head_dim)
-            v = v.reshape(-1, attn.num_kv_heads, attn.head_dim)
+            with record_function("ksa.projection_qkv_rope"):
+                qkv, _ = attn.qkv_proj(hidden)
+                q, k, v = qkv.split([attn.q_size, attn.kv_size, attn.kv_size], -1)
+                q = attn.q_norm(q.reshape(-1, attn.num_heads, attn.head_dim))
+                k = attn.k_norm(k.reshape(-1, attn.num_kv_heads, attn.head_dim))
+                q, k = attn.rotary_emb(pos, q.flatten(1), k.flatten(1))
+                q = q.reshape(-1, attn.num_heads, attn.head_dim)
+                k = k.reshape(-1, attn.num_kv_heads, attn.head_dim)
+                v = v.reshape(-1, attn.num_kv_heads, attn.head_dim)
             outputs = []
             window = self.windows[index]
             for state, query, key, value in zip(
@@ -257,18 +259,20 @@ class KSAForCausalLM(Qwen3ForCausalLM):
                     state["pending"].append(
                         (key, value) if keep is None else (key[keep], value[keep])
                     )
-                outputs.append(
-                    prefill_attention(
-                        query,
-                        key,
-                        value,
-                        state["masks"][window],
-                        self.reference_attention,
+                with record_function("ksa.attention"):
+                    outputs.append(
+                        prefill_attention(
+                            query,
+                            key,
+                            value,
+                            state["masks"][window],
+                            self.reference_attention,
+                        )
                     )
-                )
-            hidden, _ = attn.o_proj(torch.cat(outputs).flatten(1))
-            hidden, residual = layer.post_attention_layernorm(hidden, residual)
-            hidden = layer.mlp(hidden)
+            with record_function("ksa.projection_output_mlp"):
+                hidden, _ = attn.o_proj(torch.cat(outputs).flatten(1))
+                hidden, residual = layer.post_attention_layernorm(hidden, residual)
+                hidden = layer.mlp(hidden)
             if self.layer_observer is not None:
                 for state, value in zip(states, (hidden + residual).split(sizes)):
                     self.layer_observer(index, value, state["rows"], state["summary"])

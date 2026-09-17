@@ -1,6 +1,6 @@
 # T05：CUDA Graph 与瓶颈定位
 
-- 状态：TODO
+- 状态：IN_PROGRESS
 - 依赖：T04 DONE
 - 目标：完成图执行，基于实测选择下一阶段算子工作。
 
