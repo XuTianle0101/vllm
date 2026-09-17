@@ -1028,7 +1028,7 @@ def test_paged_triton_joint_softmax_matches_fp32_oracle(
     summary_pool = torch.randn_like(pool) if separate_pools else pool
     slots = torch.randperm(2047 * 8, device="cuda") + 8
     used = 0
-    for start, count in [(0, 17), (15, 19), (63, 1), (64, 1), (1031, 10)]:
+    for start, count in [(0, 17), (15, 19), (63, 1), (64, 1), (1031, 10), (0, 257)]:
         count = 1 if decode_only else count
         pos, rows, summary = cached_layout(start, count, "cuda")
         old_pos, old_summary, _ = retained_layout(start, window, "cuda")

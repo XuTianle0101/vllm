@@ -44,6 +44,8 @@ def _attention(
     split = tl.program_id(2) % SPLITS
     begin = tl.load(Offsets + request)
     end = tl.load(Offsets + request + 1)
+    if tile * BM >= (end - begin) * G:
+        return
     old = tl.load(Lengths + request)
     base = tl.load(Bases + request)
     m = tile * BM + tl.arange(0, BM)

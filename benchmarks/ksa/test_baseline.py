@@ -228,6 +228,20 @@ class BaselineContractTest(unittest.TestCase):
 
 
 class FinalValidationContractTest(unittest.TestCase):
+    def test_capture_telemetry_preserves_the_before_snapshot(self):
+        """In-process RPC must not hide new captures through a mutable alias."""
+        import torch
+        from final_validation import telemetry
+
+        graphs = SimpleNamespace(startup=[{"batch": 1}])
+        worker = SimpleNamespace(model_runner=SimpleNamespace(ksa_graphs=graphs))
+        with patch.object(torch.accelerator, "max_memory_allocated", return_value=0):
+            before = telemetry(worker)
+            graphs.startup.append({"batch": 4})
+            after = telemetry(worker)
+        self.assertEqual(len(before["captures"]), 1)
+        self.assertEqual(len(after["captures"]), 2)
+
     def test_final_decode_gate_rejects_missing_or_contaminated_measurements(self):
         """A summary must not accept partial matrices or timing with graph capture."""
         from final_validation import summarize

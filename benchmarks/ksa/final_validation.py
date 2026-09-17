@@ -23,7 +23,7 @@ def telemetry(worker, reset=False):
     runner = worker.model_runner
     graphs = runner.ksa_graphs
     result = dict(
-        captures=[] if graphs is None else graphs.startup,
+        captures=[] if graphs is None else list(graphs.startup),
         peak_memory_bytes=torch.accelerator.max_memory_allocated(),
     )
     if reset:
