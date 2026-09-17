@@ -69,7 +69,7 @@ class KSASchedulerPagePool:
         values[summary] = summaries
         return values[:, 0], values[:, 1]
 
-    def _slots(self, req_id, layer, positions, summary):
+    def _slots(self, req_id, layer, positions, summary, device):
         slots = []
         for kind, mask, block_size in (("text", ~summary, 8), ("summary", summary, 64)):
             name = f"layer.{layer}.{kind}"
@@ -83,30 +83,49 @@ class KSASchedulerPagePool:
             if torch.any(blocks == 0):
                 raise RuntimeError("KSA attempted to access a freed scheduler page")
             offset = pos % 8 if kind == "text" else (pos // 8) % 8
-            slots.append(blocks * 8 + offset)
-        return (*slots, summary)
+            slots.append((blocks * 8 + offset).to(device))
+        return (*slots, summary.to(device))
 
     def commit(self, request, end, pending, retained):
+        device = pending[0][0].device
         positions, _, summary = cached_layout(
             request.num_computed_tokens,
             end - request.num_computed_tokens,
-            pending[0][0].device,
+            "cpu",
         )
+        indices = [mask.nonzero().flatten().to(device) for mask in (~summary, summary)]
+        layouts = {
+            window: retained_layout(end, window, "cpu") for window in set(self.windows)
+        }
+        slot_groups = {}
+
+        def slots_for(layer, pos, flags, phase):
+            key = (
+                self.groups[f"layer.{layer}.text"],
+                self.groups[f"layer.{layer}.summary"],
+                phase,
+            )
+            if key not in slot_groups:
+                slot_groups[key] = self._slots(
+                    request.request_id, layer, pos, flags, device
+                )
+            return slot_groups[key]
+
         next_slots = []
         for layer, (key, value) in enumerate(pending):
-            text_slots, summary_slots, _ = self._slots(
-                request.request_id, layer, positions, summary
-            )
+            text_slots, summary_slots, _ = slots_for(layer, positions, summary, "new")
             rows = torch.stack((key, value), dim=1)
-            for kind, slots, mask in (
-                ("text", text_slots, ~summary),
-                ("summary", summary_slots, summary),
+            for kind, slots, index in (
+                ("text", text_slots, indices[0]),
+                ("summary", summary_slots, indices[1]),
             ):
+                if not len(index):
+                    continue
                 self.storage[f"layer.{layer}.{kind}"].flatten(0, 1).index_copy_(
-                    0, slots, rows[mask]
+                    0, slots, rows.index_select(0, index)
                 )
-            pos, is_summary, _ = retained_layout(end, self.windows[layer], key.device)
-            next_slots.append(self._slots(request.request_id, layer, pos, is_summary))
+            pos, is_summary, _ = layouts[self.windows[layer]]
+            next_slots.append(slots_for(layer, pos, is_summary, "retained"))
         self.read_slots[request.request_id] = next_slots
         request.num_computed_tokens = end
 

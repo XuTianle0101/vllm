@@ -67,9 +67,9 @@ def worker(args):
         while True:
             if engine.step():
                 break
-        request = scheduler.requests["kv-probe"]
+        request_id = next(iter(scheduler.requests))
         manager = scheduler.kv_cache_manager
-        blocks = manager.get_blocks(request).get_block_ids()
+        blocks = manager.get_blocks(request_id).get_block_ids()
         groups = scheduler.kv_cache_config.kv_cache_groups
         write_json(
             args.output / "kv.json",

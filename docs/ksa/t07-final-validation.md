@@ -52,6 +52,7 @@ OUT=../results/T07/final
 mkdir -p "$OUT"
 .venv/bin/python -m pytest tests/model_executor/test_ksa_prefill.py -q
 .venv/bin/python -m unittest discover -s benchmarks/ksa -p test_baseline.py
+.venv/bin/python benchmarks/ksa/plain_qwen3.py --output "$OUT/plain-qwen3"
 .venv/bin/python benchmarks/ksa/v1.py --model "$MODEL" --baseline "$BASELINE" \
   --all-cases --max-model-len 131072 --row-budget 4096 --output "$OUT/accuracy"
 .venv/bin/python benchmarks/ksa/cudagraph_v1.py --model "$MODEL" \
