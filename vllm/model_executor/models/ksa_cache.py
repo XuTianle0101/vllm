@@ -4,7 +4,7 @@
 
 The eager runner commits already computed KV after attention has finished. This
 allows prefill to discard old text without overwriting keys its early queries
-still need. Serving and chunked execution are separate from this adapter.
+still need. Chunked execution uses the same delayed commit protocol.
 """
 
 from dataclasses import dataclass
@@ -93,32 +93,27 @@ class KSAPagePool:
         """Commit per-layer KV and masks after a successful model forward.
 
         With compact_prefill enabled, initial KV contains only retained rows;
-        decode KV always contains the new text row and optional summary row.
+        subsequent KV contains all new text and summary rows in the chunk.
         Masks select the next layout from previous rows followed by new rows.
         Allocation failure preserves committed state. A write failure releases
         the request because partially overwritten pages cannot be rolled back.
         """
         if not request.num_computed_tokens < end <= self.max_tokens:
             raise ValueError("invalid KSA page commit length")
-        if request.num_computed_tokens and end != request.num_computed_tokens + 1:
-            raise ValueError("KSA paged decode requires exactly one new text token")
         # Conservative preflight before allocate_slots can free skipped pages.
-        needed = sum(
-            max(
-                0,
-                (end + manager.block_size - 1) // manager.block_size
-                - max(
-                    len(table),
-                    manager.get_num_skipped_tokens(end) // manager.block_size,
-                ),
-            )
-            for manager, table in zip(
-                self.manager.coordinator.single_type_managers,
-                self.manager.get_blocks(request.request_id).blocks,
-            )
-        )
+        needed = self.required_blocks(request, end)
         if needed > self.manager.block_pool.get_num_free_blocks():
             raise MemoryError("KSA KV page pool exhausted")
+        # A running sliding-window manager normally grows by a small decode
+        # step. A completed chunk may jump over entire pages that were never
+        # stored: pad those gaps before its length-based allocation fast path.
+        for manager in self.manager.coordinator.single_type_managers:
+            if request.request_id in manager.num_cached_block:
+                table = manager.req_to_blocks[request.request_id]
+                skipped = manager.get_num_skipped_tokens(end) // manager.block_size
+                table.extend(
+                    [self.manager.block_pool.null_block] * max(0, skipped - len(table))
+                )
         # Already computed KV enters through the existing external-KV allocation
         # path: it sizes all groups and skips expired text before allocating.
         allocated = self.manager.allocate_slots(
@@ -190,6 +185,23 @@ class KSAPagePool:
         except BaseException:
             self.free(request)
             raise
+
+    def required_blocks(self, request, end):
+        """Conservative admission cost before recycling any historical pages."""
+        return sum(
+            max(
+                0,
+                (end + manager.block_size - 1) // manager.block_size
+                - max(
+                    len(table),
+                    manager.get_num_skipped_tokens(end) // manager.block_size,
+                ),
+            )
+            for manager, table in zip(
+                self.manager.coordinator.single_type_managers,
+                self.manager.get_blocks(request.request_id).blocks,
+            )
+        )
 
     def free(self, request):
         self.read_slots.pop(request.request_id, None)

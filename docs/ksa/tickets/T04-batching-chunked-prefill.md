@@ -1,6 +1,6 @@
 # T04：批处理与 chunked prefill
 
-- 状态：TODO
+- 状态：AWAITING_SERVER
 - 依赖：T03 DONE
 - 目标：在压缩 KV 上支持基础 vLLM 服务调度。
 
@@ -20,8 +20,11 @@
 
 ## 交付记录
 
-- 提交 SHA：待实现
-- 本地检查：未执行
-- 服务器命令：待脚本实现后填写
-- 结果路径：未生成
-- 结论：未验收
+- 实现：[T04 运行说明](../t04-batching-chunked-prefill.md)。独立 KSA eager 调度与
+  OpenAI completions 入口已实现；通用 GPUModelRunner/V1 scheduler 接入仍未实现。
+- 提交 SHA：以 `git log --format=%H --grep='implement KSA batching and chunked prefill' -1` 查询代码提交。
+- 本地检查：72 项 CPU 合约测试；Ruff 和 pre-commit 结果随正式验收记录更新。
+- 服务器命令：见运行说明；`benchmarks/ksa/batching.py` 与 `benchmarks/ksa/serving.py`。
+- 开发结果：`../results/T04/a100-dev/` 教师强制 68/68；自由生成有序列分歧，
+  正在补充同前缀 HF 门禁。`../results/T04/http-dev3/` HTTP/SSE/断连回收通过。
+- 结论：等待绑定代码 SHA 的正式服务器结果；不提前标记 DONE。

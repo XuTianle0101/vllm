@@ -307,8 +307,6 @@ def test_cached_decode_matches_full_prefill_across_blocks(tiny_model, length):
         old_count = cache.text_tokens
         with pytest.raises(ValueError, match="contiguous"):
             model(ids[:1], torch.tensor([old_count - 1]), cache=cache)
-        with pytest.raises(ValueError, match="exactly one"):
-            model(ids[:2], torch.arange(old_count, old_count + 2), cache=cache)
         assert cache.text_tokens == old_count
         cache.clear()
         torch.testing.assert_close(
@@ -586,3 +584,229 @@ def test_paged_uncompacted_prefill_and_write_failure_cleanup(tiny_model, monkeyp
         with pytest.raises((IndexError, RuntimeError)):
             KSAPythonRunner(tiny_model).generate(ids[:7], max_tokens=2)
         assert pool.manager.block_pool.get_num_free_blocks() == free
+
+
+@pytest.mark.parametrize("splits", [[7, 9, 64, 1041], [1, 8, 17, 1023, 1032, 1041]])
+@pytest.mark.parametrize("batch_writes", [False, True])
+def test_chunked_mixed_batch_preserves_early_queries(tiny_model, splits, batch_writes):
+    """Chunks crossing several windows must read old KV before pages recycle."""
+    model = tiny_model
+    a, b = torch.arange(1041) % 63, (torch.arange(1041) + 19) % 63
+    from vllm.model_executor.models.ksa_cache import KSAPagePool
+
+    model.page_pool = KSAPagePool(
+        model.windows, 1, 16, torch.float32, "cpu", 2048, num_blocks=1100
+    )
+    caches = [model.new_cache(), model.new_cache()]
+    model.page_pool.batch_writes = batch_writes
+    free = model.page_pool.manager.block_pool.get_num_free_blocks()
+    with torch.inference_mode():
+        expected = [model(ids, torch.arange(len(ids))) for ids in (a, b)]
+        starts = [0, 0]
+        for end in splits:
+            ends = [end, max(1, end - 3)]
+            order = [1, 0] if end % 2 else [0, 1]
+            batch = [
+                (ids[starts[i] : ends[i]], torch.arange(starts[i], ends[i]), caches[i])
+                for i in order
+                for ids in [(a, b)[i]]
+            ]
+            actual = model.forward_batch(batch)
+            for i, value in zip(order, actual):
+                torch.testing.assert_close(
+                    value, expected[i][starts[i] : ends[i]], atol=2e-6, rtol=1e-5
+                )
+                starts[i] = ends[i]
+        for cache in caches:
+            cache.clear()
+    assert model.page_pool.manager.block_pool.get_num_free_blocks() == free
+
+
+def test_batched_scheduler_usage_logprobs_reorder_cancel_and_recompute(tiny_model):
+    """Text outputs and next-token logprobs survive arbitrary scheduling."""
+    from vllm.model_executor.models.ksa_decode import KSAPythonRunner
+    from vllm.v1.worker.ksa_model_runner import KSABatchedRunner
+
+    model = tiny_model
+    runner = KSABatchedRunner(model, max_num_batched_tokens=19, chunk_size=7)
+    ids = list(range(17))
+    expected = KSAPythonRunner(model).generate(
+        torch.tensor(ids), max_tokens=9, ignore_eos=True
+    )
+    with torch.inference_mode():
+        logits = model.compute_logits(
+            model(torch.tensor(ids), torch.arange(len(ids)))
+        ).float()
+        expected_lp = (
+            logits[:-1].log_softmax(-1).gather(1, torch.tensor(ids[1:])[:, None])[:, 0]
+        )
+    free = runner.pool.manager.block_pool.get_num_free_blocks()
+    for iteration in range(3):
+        runner.add_request("a", ids, max_tokens=9, prompt_logprobs=True)
+        runner.add_request("cancel", ids[:8], max_tokens=20)
+        runner.add_request("b", ids[:9], max_tokens=0, prompt_logprobs=True)
+        runner.step()
+        runner.abort_request("cancel")
+        runner.preempt("a")
+        runner.requests.move_to_end("a")
+        finished = {}
+        for _ in range(50):
+            for out in runner.step():
+                assert out.usage["total_tokens"] == out.prompt_tokens + len(
+                    out.token_ids
+                )
+                if out.finish_reason:
+                    finished[out.request_id] = out
+            assert runner.last_step_rows <= 19
+            if not runner.requests:
+                break
+        assert not runner.requests
+        assert finished["a"].token_ids == expected.token_ids
+        assert finished["b"].token_ids == []
+        assert finished["a"].prompt_logprobs[0] is None
+        torch.testing.assert_close(
+            torch.tensor(finished["a"].prompt_logprobs[1:]), expected_lp
+        )
+        assert runner.pool.manager.block_pool.get_num_free_blocks() == free
+
+
+def test_page_pressure_preempts_and_recovers_without_duplicate_tokens(tiny_model):
+    """A pool fitting one long request must finish a mixed batch by recompute."""
+    from vllm.model_executor.models.ksa_cache import KSAPagePool
+    from vllm.model_executor.models.ksa_decode import KSAPythonRunner
+    from vllm.v1.worker.ksa_model_runner import KSABatchedRunner
+
+    model = tiny_model
+    ids = list(range(40))
+    expected = KSAPythonRunner(model).generate(
+        torch.tensor(ids), max_tokens=17, ignore_eos=True
+    )
+    model.page_pool = KSAPagePool(
+        model.windows, 1, 16, torch.float32, "cpu", 2048, num_blocks=34
+    )
+    runner = KSABatchedRunner(model, max_num_batched_tokens=32, chunk_size=8)
+    for name in ("a", "b", "c"):
+        runner.add_request(name, ids, max_tokens=17)
+    done = {}
+    for _ in range(200):
+        for output in runner.step():
+            if output.finish_reason:
+                done[output.request_id] = output
+        if not runner.requests:
+            break
+    assert len(done) == 3 and runner.num_preemptions > 0
+    assert all(output.token_ids == expected.token_ids for output in done.values())
+    assert all(output.finish_reason == "length" for output in done.values())
+    assert runner.pool.manager.block_pool.get_num_free_blocks() == 33
+    # Even the minimum chunk cannot fit: terminal error, no retry loop or leak.
+    held = runner.pool.manager.block_pool.get_new_blocks(33)
+    runner.add_request("oom", ids, max_tokens=1)
+    output = runner.step()[0]
+    assert output.finish_reason == "error" and "exhausted" in output.error
+    assert not runner.requests
+    runner.pool.manager.block_pool.free_blocks(held)
+
+
+def test_summary_rows_are_charged_for_every_block_phase():
+    from vllm.v1.worker.ksa_model_runner import internal_rows, text_budget
+
+    for start in range(16):
+        for budget in range(20):
+            count = text_budget(start, 100, budget)
+            assert internal_rows(start, count) <= budget
+            assert internal_rows(start, count + 1) > budget
+
+
+def test_completions_stream_usage_prompt_logprobs_and_rejection(tiny_model):
+    """HTTP and SSE expose the same text results and return all request pages."""
+    import json
+
+    from fastapi.testclient import TestClient
+
+    from vllm.entrypoints.ksa import create_app
+    from vllm.v1.worker.ksa_model_runner import KSABatchedRunner
+
+    class Tokenizer:
+        eos_token_id = None
+
+        def decode(self, ids, **kwargs):
+            return "".join(chr(65 + token) for token in ids)
+
+    runner = KSABatchedRunner(tiny_model, chunk_size=7, max_num_batched_tokens=16)
+    free = runner.pool.manager.block_pool.get_num_free_blocks()
+    body = dict(model="ksa", prompt=list(range(9)), max_tokens=5, prompt_logprobs=True)
+    with TestClient(create_app(runner, Tokenizer())) as client:
+        response = client.post("/v1/completions", json=body)
+        assert response.status_code == 200
+        result = response.json()
+        assert result["usage"] == dict(
+            prompt_tokens=9, completion_tokens=5, total_tokens=14
+        )
+        assert (
+            len(result["prompt_logprobs"]) == 9 and result["prompt_logprobs"][0] is None
+        )
+        with client.stream(
+            "POST", "/v1/completions", json={**body, "stream": True}
+        ) as response:
+            lines = [
+                line[6:] for line in response.iter_lines() if line.startswith("data: ")
+            ]
+        assert lines[-1] == "[DONE]"
+        chunks = [json.loads(line) for line in lines[:-1]]
+        assert (
+            "".join(chunk["choices"][0]["text"] for chunk in chunks)
+            == result["choices"][0]["text"]
+        )
+        assert chunks[-1]["usage"] == result["usage"]
+        assert chunks[-1]["choices"][0]["finish_reason"] == "length"
+        assert chunks[-1]["prompt_logprobs"] == result["prompt_logprobs"]
+        for option in (
+            {"temperature": 1},
+            {"enable_prefix_caching": True},
+            {"n": 2},
+            {"stop": "x"},
+        ):
+            assert (
+                client.post("/v1/completions", json={**body, **option}).status_code
+                == 422
+            )
+        assert (
+            client.post("/v1/completions", json={**body, "prompt": []}).status_code
+            == 400
+        )
+    assert not runner.requests
+    assert runner.pool.manager.block_pool.get_num_free_blocks() == free
+
+
+def test_batched_eos_and_workspace_oom_release_requests(tiny_model, monkeypatch):
+    """A terminal EOS counts once; workspace OOM terminates without page leaks."""
+    from vllm.v1.worker.ksa_model_runner import KSABatchedRunner
+
+    with pytest.raises(ValueError, match="prefix caching"):
+        KSABatchedRunner(tiny_model, enable_prefix_caching=True)
+    runner = KSABatchedRunner(tiny_model, chunk_size=8)
+    with torch.inference_mode():
+        eos = (
+            tiny_model.compute_logits(tiny_model(torch.arange(8), torch.arange(8))[-1:])
+            .argmax()
+            .item()
+        )
+    runner.add_request("eos", list(range(8)), max_tokens=10, eos_token_ids=[eos])
+    output = runner.step()[0]
+    assert output.finish_reason == "stop" and output.token_ids == [eos]
+    for name in ("a", "b"):
+        runner.add_request(name, list(range(16)), max_tokens=10)
+    assert runner.step() == []
+
+    def oom(requests):
+        raise torch.OutOfMemoryError("injected workspace OOM")
+
+    monkeypatch.setattr(tiny_model, "forward_batch", oom)
+    outputs = runner.step()
+    assert len(outputs) == 2
+    assert all(out.finish_reason == "error" and "OOM" in out.error for out in outputs)
+    assert not runner.requests and not runner.pool.read_slots
+    assert (
+        runner.pool.manager.block_pool.get_num_free_blocks()
+        == runner.pool.config.num_blocks - 1
+    )

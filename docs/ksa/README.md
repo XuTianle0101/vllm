@@ -2,6 +2,7 @@
 
 当前状态：**T00 基线已冻结，T01 prefill、T02 单请求 decode 与 T03 分页压缩缓存已通过 A100 验收。**
 
+- [T04 批处理与基础服务](t04-batching-chunked-prefill.md)：分块、预算、抢占重算及独立 HTTP 入口。
 - [T03 分页缓存与验收](t03-compressed-kv.md)：真实页分配、压缩占用、独立性能对照与限制。
 - [T02 运行与验收](t02-decode.md)：Python 缓存生成、精度与性能对照、当前限制。
 - [总计划](ksa-vllm-plan.md)：目标、约束、语义、精度与性能门禁。
