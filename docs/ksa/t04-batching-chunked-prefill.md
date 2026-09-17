@@ -39,10 +39,12 @@ CUDA 临时工作区 OOM 以错误结束对应请求并释放页，不无限重�
 
 ## 验证与复现
 
-完整结果与正式 SHA 在 ticket 交付记录中更新。命令从仓库根目录运行，输出目录必须不存在。
+正式代码 SHA：`8160714ad8e9a38dc571508014ffc50c7635470f`；
+[验收报告](results/T04/a100-8160714ad8/README.md)。命令从仓库根目录运行，输出目录必须不存在。
 先设置 `T04_SHA` 为记录的完整代码 SHA；正式脚本拒绝错误 SHA 或 dirty checkout。
 
 ```bash
+T04_SHA=8160714ad8e9a38dc571508014ffc50c7635470f
 git checkout "$T04_SHA"
 VLLM_USE_PRECOMPILED=1 uv pip install --python .venv/bin/python -e . --torch-backend=auto
 OMP_NUM_THREADS=1 .venv/bin/python -m pytest tests/model_executor/test_ksa_prefill.py -q

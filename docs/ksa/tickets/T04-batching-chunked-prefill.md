@@ -1,6 +1,6 @@
 # T04：批处理与 chunked prefill
 
-- 状态：AWAITING_SERVER
+- 状态：DONE
 - 依赖：T03 DONE
 - 目标：在压缩 KV 上支持基础 vLLM 服务调度。
 
@@ -20,11 +20,13 @@
 
 ## 交付记录
 
-- 实现：[T04 运行说明](../t04-batching-chunked-prefill.md)。独立 KSA eager 调度与
-  OpenAI completions 入口已实现；通用 GPUModelRunner/V1 scheduler 接入仍未实现。
-- 提交 SHA：以 `git log --format=%H --grep='implement KSA batching and chunked prefill' -1` 查询代码提交。
-- 本地检查：72 项 CPU 合约测试；Ruff 和 pre-commit 结果随正式验收记录更新。
-- 服务器命令：见运行说明；`benchmarks/ksa/batching.py` 与 `benchmarks/ksa/serving.py`。
-- 开发结果：`../results/T04/a100-dev/` 教师强制 68/68；自由生成有序列分歧，
-  正在补充同前缀 HF 门禁。`../results/T04/http-dev3/` HTTP/SSE/断连回收通过。
-- 结论：等待绑定代码 SHA 的正式服务器结果；不提前标记 DONE。
+- 实现：[T04 运行说明](../t04-batching-chunked-prefill.md)。专用 KSA eager 调度、
+  批处理和 OpenAI completions 入口；通用 GPUModelRunner/V1 scheduler 尚未接入。
+- 代码 SHA：`8160714ad8e9a38dc571508014ffc50c7635470f`。
+- 检查：72 项 CPU 测试、最终服务改动 2 项定向回归，以及全部适用 pre-commit 检查通过。
+- A100：教师强制 68/68、自由生成同前缀门禁 5/5、页压力抢占重算与回收通过。
+- HTTP：并发 1/4/8、SSE、prefill 断连、三次生成断连和页回收通过。
+- 服务器命令：见运行说明；完整性能矩阵为 1K/4K、并发 1/4/8、128 输出、一次预热加五次重复。
+- 结果：[正式验收报告](../results/T04/a100-8160714ad8/README.md)，原始目录为
+  `../results/T04/a100-final/` 和 `../results/T04/http-final/`。
+- 结论：本轮专用 eager 路径通过；不宣称通用 V1 框架已适配，不宣称单请求优于 HF。

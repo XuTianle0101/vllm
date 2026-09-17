@@ -1,0 +1,486 @@
+{
+  "code_sha": "8160714ad8e9a38dc571508014ffc50c7635470f",
+  "status": "pass",
+  "baseline_id": "T00-305bf8f9dc429f1af60e",
+  "tolerance_id": "T00-tol-fbd0eb931ac1c7153403",
+  "raw_results": "/workspace/volume/h20-data/xutianle/KSA/results/T04/a100-final/results.json",
+  "raw_sha256": "7ffa6d1d2ea4edc3dd8b9b074bbdf0dbd3028c2329c157a8b6fe575f5b0187ae",
+  "http_results": "/workspace/volume/h20-data/xutianle/KSA/results/T04/http-final/results.json",
+  "http_sha256": "9df77c4020b41129d3e3f1612a94efb2815b57710fe24daa66e664800511127f",
+  "teacher_passed": 68,
+  "teacher_total": 68,
+  "generation": [
+    {
+      "case_id": "length-7",
+      "status": "pass",
+      "exact_single_request_tokens": true,
+      "single_request_same_prefix": {
+        "max_mismatch_margin": 0.0,
+        "logits_max_abs_error": 0.375,
+        "logits_rmse": 0.09518834948539734,
+        "logprobs_max_abs_error": 0.3661994934082031,
+        "top1_agreement": 1.0,
+        "status": "pass"
+      },
+      "usage": {
+        "prompt_tokens": 7,
+        "completion_tokens": 32,
+        "total_tokens": 39
+      },
+      "hf_same_prefix": {
+        "max_mismatch_margin": 0.0,
+        "logits_max_abs_error": 0.375,
+        "logits_rmse": 0.11056434363126755,
+        "logprobs_max_abs_error": 0.36947059631347656,
+        "top1_agreement": 1.0,
+        "status": "pass"
+      }
+    },
+    {
+      "case_id": "length-8",
+      "status": "pass",
+      "exact_single_request_tokens": false,
+      "single_request_same_prefix": {
+        "max_mismatch_margin": 0.25,
+        "logits_max_abs_error": 0.375,
+        "logits_rmse": 0.09872819483280182,
+        "logprobs_max_abs_error": 0.49068355560302734,
+        "top1_agreement": 0.96875,
+        "status": "pass"
+      },
+      "usage": {
+        "prompt_tokens": 8,
+        "completion_tokens": 32,
+        "total_tokens": 40
+      },
+      "hf_same_prefix": {
+        "max_mismatch_margin": 0.0,
+        "logits_max_abs_error": 0.375,
+        "logits_rmse": 0.10751072317361832,
+        "logprobs_max_abs_error": 0.3715171813964844,
+        "top1_agreement": 1.0,
+        "status": "pass"
+      }
+    },
+    {
+      "case_id": "length-9",
+      "status": "pass",
+      "exact_single_request_tokens": false,
+      "single_request_same_prefix": {
+        "max_mismatch_margin": 0.0,
+        "logits_max_abs_error": 0.6875,
+        "logits_rmse": 0.1541346311569214,
+        "logprobs_max_abs_error": 0.8123245239257812,
+        "top1_agreement": 0.96875,
+        "status": "pass"
+      },
+      "usage": {
+        "prompt_tokens": 9,
+        "completion_tokens": 32,
+        "total_tokens": 41
+      },
+      "hf_same_prefix": {
+        "max_mismatch_margin": 0.0,
+        "logits_max_abs_error": 1.28125,
+        "logits_rmse": 0.26475900411605835,
+        "logprobs_max_abs_error": 0.40618133544921875,
+        "top1_agreement": 0.96875,
+        "status": "pass"
+      }
+    },
+    {
+      "case_id": "english",
+      "status": "pass",
+      "exact_single_request_tokens": true,
+      "single_request_same_prefix": {
+        "max_mismatch_margin": 0.0,
+        "logits_max_abs_error": 0.75,
+        "logits_rmse": 0.16257603466510773,
+        "logprobs_max_abs_error": 0.3739280700683594,
+        "top1_agreement": 1.0,
+        "status": "pass"
+      },
+      "usage": {
+        "prompt_tokens": 5,
+        "completion_tokens": 32,
+        "total_tokens": 37
+      },
+      "hf_same_prefix": {
+        "max_mismatch_margin": 0.0,
+        "logits_max_abs_error": 0.5,
+        "logits_rmse": 0.11376651376485825,
+        "logprobs_max_abs_error": 0.3746814727783203,
+        "top1_agreement": 0.96875,
+        "status": "pass"
+      }
+    },
+    {
+      "case_id": "chinese",
+      "status": "pass",
+      "exact_single_request_tokens": true,
+      "single_request_same_prefix": {
+        "max_mismatch_margin": 0.0,
+        "logits_max_abs_error": 0.390625,
+        "logits_rmse": 0.08034736663103104,
+        "logprobs_max_abs_error": 0.3082122802734375,
+        "top1_agreement": 0.96875,
+        "status": "pass"
+      },
+      "usage": {
+        "prompt_tokens": 9,
+        "completion_tokens": 32,
+        "total_tokens": 41
+      },
+      "hf_same_prefix": {
+        "max_mismatch_margin": 0.0,
+        "logits_max_abs_error": 0.265625,
+        "logits_rmse": 0.06175754591822624,
+        "logprobs_max_abs_error": 0.261260986328125,
+        "top1_agreement": 1.0,
+        "status": "pass"
+      }
+    }
+  ],
+  "pressure_recovery": {
+    "status": "pass",
+    "preemptions": 4,
+    "oom": "KSA KV page pool exhausted for one request",
+    "free_pages": 399
+  },
+  "http": {
+    "url": "http://127.0.0.1:18004",
+    "status": "pass",
+    "concurrency": [
+      {
+        "concurrency": 1,
+        "prompt_logprobs_max_abs_error": 0.0,
+        "elapsed_s": 0.7306193010881543,
+        "output_tokens_per_s": 21.899229839904667
+      },
+      {
+        "concurrency": 4,
+        "prompt_logprobs_max_abs_error": 0.16208267211914062,
+        "elapsed_s": 1.2701910687610507,
+        "output_tokens_per_s": 50.38612030426717
+      },
+      {
+        "concurrency": 8,
+        "prompt_logprobs_max_abs_error": 0.13328075408935547,
+        "elapsed_s": 1.9537524385377765,
+        "output_tokens_per_s": 65.51495341743374
+      }
+    ],
+    "baseline_id": "T00-305bf8f9dc429f1af60e",
+    "tolerance_id": "T00-tol-fbd0eb931ac1c7153403",
+    "stream": "pass",
+    "disconnect": "pass",
+    "reclaimed": {
+      "status": "ok",
+      "active_requests": 0,
+      "cached_requests": 0,
+      "free_pages": 17379,
+      "total_pages": 17379
+    }
+  },
+  "timing": [
+    {
+      "length": 1024,
+      "concurrency": 1,
+      "repetitions": 5,
+      "ttft_ms": {
+        "mean": 212.7975082024932,
+        "stdev": 0.3567876534835654,
+        "min": 212.42444403469563,
+        "max": 213.39182648807764
+      },
+      "tpot_steady_ms": {
+        "mean": 45.35238132146853,
+        "stdev": 0.24101260028321597,
+        "min": 45.08371375933556,
+        "max": 45.692404723792734
+      },
+      "tpot_boundary_ms": {
+        "mean": 47.17379252115885,
+        "stdev": 0.40665632523595685,
+        "min": 46.86134917040666,
+        "max": 47.87370587388674
+      },
+      "output_tokens_per_s": {
+        "mean": 21.33428433062284,
+        "stdev": 0.11611973744721053,
+        "min": 21.162647859835914,
+        "max": 21.458397815009985
+      },
+      "peak_memory_bytes": {
+        "mean": 13032750080,
+        "stdev": 0.0,
+        "min": 13032750080,
+        "max": 13032750080
+      },
+      "pool_bytes": {
+        "mean": 4556062720,
+        "stdev": 0.0,
+        "min": 4556062720,
+        "max": 4556062720
+      },
+      "preemptions": {
+        "mean": 0,
+        "stdev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "length": 1024,
+      "concurrency": 4,
+      "repetitions": 5,
+      "ttft_ms": {
+        "mean": 657.8302739188075,
+        "stdev": 0.22447471143651831,
+        "min": 657.5631285086274,
+        "max": 658.149546943605
+      },
+      "tpot_steady_ms": {
+        "mean": 77.82066035516826,
+        "stdev": 0.3185944187086761,
+        "min": 77.36615417525172,
+        "max": 78.14702001633123
+      },
+      "tpot_boundary_ms": {
+        "mean": 83.63961624602477,
+        "stdev": 0.5092509848881518,
+        "min": 83.0461248755455,
+        "max": 84.22269374132156
+      },
+      "output_tokens_per_s": {
+        "mean": 48.17370984920909,
+        "stdev": 0.1949364700323254,
+        "min": 47.97584218251329,
+        "max": 48.44516589502254
+      },
+      "peak_memory_bytes": {
+        "mean": 13507096064,
+        "stdev": 0.0,
+        "min": 13507096064,
+        "max": 13507096064
+      },
+      "pool_bytes": {
+        "mean": 4556062720,
+        "stdev": 0.0,
+        "min": 4556062720,
+        "max": 4556062720
+      },
+      "preemptions": {
+        "mean": 0,
+        "stdev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "length": 1024,
+      "concurrency": 8,
+      "repetitions": 5,
+      "ttft_ms": {
+        "mean": 1247.363293170929,
+        "stdev": 3.4300829426224833,
+        "min": 1244.8266303399578,
+        "max": 1253.276849980466
+      },
+      "tpot_steady_ms": {
+        "mean": 120.71269250487343,
+        "stdev": 1.4661468696765063,
+        "min": 119.68729187044248,
+        "max": 123.2547717694875
+      },
+      "tpot_boundary_ms": {
+        "mean": 129.5811588782817,
+        "stdev": 0.4241087864265669,
+        "min": 129.05430982355028,
+        "max": 130.0195092257733
+      },
+      "output_tokens_per_s": {
+        "mean": 60.69280935334587,
+        "stdev": 0.5935062593266834,
+        "min": 59.673886710633425,
+        "max": 61.14106953981724
+      },
+      "peak_memory_bytes": {
+        "mean": 14002500608,
+        "stdev": 0.0,
+        "min": 14002500608,
+        "max": 14002500608
+      },
+      "pool_bytes": {
+        "mean": 4556062720,
+        "stdev": 0.0,
+        "min": 4556062720,
+        "max": 4556062720
+      },
+      "preemptions": {
+        "mean": 0,
+        "stdev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "length": 4096,
+      "concurrency": 1,
+      "repetitions": 5,
+      "ttft_ms": {
+        "mean": 1238.0850214511156,
+        "stdev": 1.0618625045811507,
+        "min": 1236.7167258635163,
+        "max": 1239.61113486439
+      },
+      "tpot_steady_ms": {
+        "mean": 45.77339035791478,
+        "stdev": 0.09447805613405685,
+        "min": 45.66568398149684,
+        "max": 45.92039587441832
+      },
+      "tpot_boundary_ms": {
+        "mean": 47.37679456671079,
+        "stdev": 0.08499554088931932,
+        "min": 47.27970287203789,
+        "max": 47.512600757181644
+      },
+      "output_tokens_per_s": {
+        "mean": 18.09099047474829,
+        "stdev": 0.029532942681302785,
+        "min": 18.042785819975755,
+        "max": 18.12167016193964
+      },
+      "peak_memory_bytes": {
+        "mean": 13524361216,
+        "stdev": 0.0,
+        "min": 13524361216,
+        "max": 13524361216
+      },
+      "pool_bytes": {
+        "mean": 4556062720,
+        "stdev": 0.0,
+        "min": 4556062720,
+        "max": 4556062720
+      },
+      "preemptions": {
+        "mean": 0,
+        "stdev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "length": 4096,
+      "concurrency": 4,
+      "repetitions": 5,
+      "ttft_ms": {
+        "mean": 4295.678387023509,
+        "stdev": 5.685484391753491,
+        "min": 4289.759348146617,
+        "max": 4304.3157691136
+      },
+      "tpot_steady_ms": {
+        "mean": 83.31915019745273,
+        "stdev": 0.24905789936455755,
+        "min": 83.12830355550561,
+        "max": 83.73749357581671
+      },
+      "tpot_boundary_ms": {
+        "mean": 94.52336861441533,
+        "stdev": 0.12907725541140536,
+        "min": 94.38768817732732,
+        "max": 94.72641857961814
+      },
+      "output_tokens_per_s": {
+        "mean": 34.0307524672712,
+        "stdev": 0.07822928606522654,
+        "min": 33.89871604797059,
+        "max": 34.09196027685693
+      },
+      "peak_memory_bytes": {
+        "mean": 14002757120,
+        "stdev": 0.0,
+        "min": 14002757120,
+        "max": 14002757120
+      },
+      "pool_bytes": {
+        "mean": 4556062720,
+        "stdev": 0.0,
+        "min": 4556062720,
+        "max": 4556062720
+      },
+      "preemptions": {
+        "mean": 0,
+        "stdev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "length": 4096,
+      "concurrency": 8,
+      "repetitions": 5,
+      "ttft_ms": {
+        "mean": 8057.2235413827,
+        "stdev": 4.500309600812278,
+        "min": 8051.0879651410505,
+        "max": 8063.503382843919
+      },
+      "tpot_steady_ms": {
+        "mean": 156.39033493082803,
+        "stdev": 0.2631688593458709,
+        "min": 156.104877465363,
+        "max": 156.71725002591432
+      },
+      "tpot_boundary_ms": {
+        "mean": 171.9620353790621,
+        "stdev": 0.30610244130859343,
+        "min": 171.54436639975756,
+        "max": 172.23231766062477
+      },
+      "output_tokens_per_s": {
+        "mean": 35.6052240221962,
+        "stdev": 0.04890891314909406,
+        "min": 35.544768592701175,
+        "max": 35.66222966441676
+      },
+      "peak_memory_bytes": {
+        "mean": 14499180544,
+        "stdev": 0.0,
+        "min": 14499180544,
+        "max": 14499180544
+      },
+      "pool_bytes": {
+        "mean": 4556062720,
+        "stdev": 0.0,
+        "min": 4556062720,
+        "max": 4556062720
+      },
+      "preemptions": {
+        "mean": 0,
+        "stdev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    }
+  ],
+  "reference_tensors": {
+    "vllm-generated-length-7.pt": "c254bf920b27fb524ca89b41902fe37cae0cc94e3a836c76f44156c30d96a40d",
+    "vllm-generated-length-8.pt": "7530035d6a4f67595e536c57f34d62e043de3799680947961aada6aacd71d839",
+    "vllm-generated-length-9.pt": "5fb9a101b9fd9d9dcff7a508bf425b4d723c1b57540557e92bfe8a6067baf3f0",
+    "vllm-generated-english.pt": "b698092aa114bcbc3bb34a63b06121ec24f097eacafced5349a9a7651a695fe1",
+    "vllm-generated-chinese.pt": "604d1c64918c8d5fe75556b65a87142fb0dc2d0f504799db4921ae521fc1dd78",
+    "hf-generated-length-7.pt": "dba8a0122532325b7683c98716f48f969448077eca4ddb72b245a191010633c4",
+    "hf-generated-length-8.pt": "ad6f18b38f3d2e74e0cd6c6f2a045fae62afd6e9c6d08b4ea4317bf762d3a90d",
+    "hf-generated-length-9.pt": "1cbef57f449ad36cbf64e56290642939abb9d6d5884d148ca924a1040c60698a",
+    "hf-generated-english.pt": "346067bf420d68b5aea25a1505d2824f6f017ecb3aeb9fc85d277ebb1f9f0567",
+    "hf-generated-chinese.pt": "3b6947e82cf8451bc69059075f04032762080e4af03dd53d1d0a4d93ddd12367"
+  },
+  "checks": {
+    "cpu_tests": 72,
+    "final_service_targeted_tests": 2,
+    "pre_commit": "pass"
+  }
+}
