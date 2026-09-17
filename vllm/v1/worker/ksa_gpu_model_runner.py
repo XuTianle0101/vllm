@@ -117,7 +117,7 @@ class KSASchedulerPagePool:
 
 
 class _KSAProfilePool:
-    """Profile historical gathers without counting scheduler KV as activations."""
+    """Profile attention workspace without allocating scheduler-owned KV."""
 
     compact_prefill = False
 
@@ -125,6 +125,9 @@ class _KSAProfilePool:
         self.shape = (2, heads, head_dim)
         self.dtype = dtype
         self.device = device
+        self.read_slots = {}
+        # Synthetic history aliases one zero page; real KV is budgeted separately.
+        self.storage = torch.zeros((1, 8, *self.shape), dtype=dtype, device=device)
 
     def read(self, request, layer, layout):
         # Real reads materialize gathered text/summary and a merged KV buffer.
@@ -235,8 +238,7 @@ class KSAGPUModelRunner(GPUModelRunner):
 
     @torch.inference_mode()
     def _dummy_run(self, num_tokens, **kwargs):
-        # Exercise the actual eager path, including hidden summary rows. Profiling
-        # also includes the largest historical gather and pending per-layer KV.
+        # Include summary rows, worst-case history metadata and pending new KV.
         profile = kwargs.get("is_profile", False)
         num_reqs = min(self.max_num_reqs, max(1, num_tokens // 2))
         text_tokens = max(1, num_tokens * 8 // 9 - num_reqs)
@@ -249,16 +251,27 @@ class KSAGPUModelRunner(GPUModelRunner):
         profile_pool = _KSAProfilePool(
             attn.num_kv_heads, attn.head_dim, self.dtype, self.device
         )
-        requests = []
-        for length in chunks:
+        requests: list[tuple[torch.Tensor, torch.Tensor, KSACache]] = []
+        for index, length in enumerate(chunks):
+            req_id = str(index)
             start = self.max_model_len - length if profile else 0
             cache = KSACache(
-                text_tokens=start, page_pool=profile_pool if profile else None
+                text_tokens=start,
+                page_pool=profile_pool,
+                request=SimpleNamespace(request_id=req_id, num_computed_tokens=start),
             )
             if start:
                 for window in set(self.model.windows):
                     pos, summary, _ = retained_layout(start, window, self.device)
                     cache.layouts[window] = (pos, summary)
+            profile_pool.read_slots[req_id] = [
+                torch.zeros(
+                    len(cache.layouts[window][0]) if start else 0,
+                    dtype=torch.long,
+                    device=self.device,
+                )
+                for window in self.model.windows
+            ]
             requests.append(
                 (
                     torch.zeros(length, dtype=torch.long, device=self.device),

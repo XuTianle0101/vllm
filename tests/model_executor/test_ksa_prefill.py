@@ -1093,3 +1093,40 @@ def test_paged_triton_joint_softmax_matches_fp32_oracle(
     torch.testing.assert_close(
         actual, torch.cat(expected), atol=tolerance, rtol=tolerance
     )
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="requires Triton CUDA")
+@pytest.mark.parametrize("profile", [False, True])
+def test_v1_profile_runs_paged_kernel_before_scheduler_pool_allocation(
+    tiny_model, profile, monkeypatch
+):
+    """Real dummy_run must accept synthetic pages before V1 allocates its KV pool.
+
+    The startup contract returns finite hidden rows for memory sizing. Compare
+    synthetic zero-KV Triton execution with SDPA, catching missing metadata
+    without constructing a full engine or loading the 4B checkpoint.
+    """
+    import vllm.model_executor.models.ksa as ksa
+    from vllm.v1.worker.ksa_gpu_model_runner import KSAGPUModelRunner, _KSAProfilePool
+
+    model = tiny_model.to("cuda")
+    runner = SimpleNamespace(
+        model=model,
+        max_num_reqs=3,
+        max_model_len=128,
+        dtype=torch.float32,
+        device=torch.device("cuda"),
+    )
+    model.triton_attention = False
+    expected = KSAGPUModelRunner._dummy_run(runner, 32, is_profile=profile)
+    model.triton_attention = True
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("profiling must not use dense masks or historical gathers")
+
+    monkeypatch.setattr(ksa, "visibility_mask", forbidden)
+    monkeypatch.setattr(_KSAProfilePool, "read", forbidden)
+    actual = KSAGPUModelRunner._dummy_run(runner, 32, is_profile=profile)
+    for value, reference in zip(actual, expected):
+        assert torch.isfinite(value).all()
+        torch.testing.assert_close(value, reference, atol=2e-6, rtol=2e-5)
