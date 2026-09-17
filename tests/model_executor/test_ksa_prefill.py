@@ -996,3 +996,100 @@ def test_decode_graph_buffers_reuse_slots_without_history_leaks(
         finally:
             for cache in actual + expected:
                 cache.clear()
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="requires Triton CUDA")
+@pytest.mark.parametrize("dtype", [torch.float32, torch.bfloat16])
+@pytest.mark.parametrize("window", [0, 1, 128, 16768])
+@pytest.mark.parametrize("separate_pools", [False, True])
+@pytest.mark.parametrize("decode_only", [False, True])
+def test_paged_triton_joint_softmax_matches_fp32_oracle(
+    dtype, window, separate_pools, decode_only
+):
+    """Random physical pages, mixed chunks and tails must share one softmax.
+
+    The kernel consumes packed Q/new KV plus historical physical slots and
+    returns one row per query. An independent FP32 masked attention oracle
+    catches page addressing, GQA, window and summary-self normalization errors.
+    """
+    from vllm.model_executor.models.ksa_attention import (
+        KSAAttentionMetadata,
+        paged_attention,
+    )
+    from vllm.model_executor.models.ksa_decode import cached_layout, retained_layout
+
+    torch.manual_seed(17)
+    states, queries, keys, values, expected = [], [], [], [], []
+    pool = torch.randn(2048, 8, 2, 2, 32, device="cuda", dtype=dtype)
+    summary_pool = torch.randn_like(pool) if separate_pools else pool
+    slots = torch.randperm(2047 * 8, device="cuda") + 8
+    used = 0
+    for start, count in [(0, 17), (15, 19), (63, 1), (64, 1), (1031, 10)]:
+        count = 1 if decode_only else count
+        pos, rows, summary = cached_layout(start, count, "cuda")
+        old_pos, old_summary, _ = retained_layout(start, window, "cuda")
+        n = len(old_pos)
+        selected = slots[used : used + n]
+        used += n
+        history = pool.flatten(0, 1)[selected]
+        history[old_summary] = summary_pool.flatten(0, 1)[selected[old_summary]]
+        q = torch.randn(len(pos), 8, 32, device="cuda", dtype=dtype)
+        k, v = torch.randn(2, len(pos), 2, 32, device="cuda", dtype=dtype)
+        expected.append(
+            prefill_attention(
+                q,
+                torch.cat((history[:, 0], k)),
+                torch.cat((history[:, 1], v)),
+                visibility_mask(
+                    pos,
+                    summary,
+                    window,
+                    torch.cat((old_pos, pos)),
+                    torch.cat((old_summary, summary)),
+                ),
+                True,
+            )
+        )
+        cache = SimpleNamespace(
+            layouts={window: (old_pos, old_summary)},
+            page_pool=SimpleNamespace(
+                read_slots={
+                    "request": [
+                        (selected[~old_summary], selected[old_summary], old_summary)
+                        if separate_pools
+                        else selected
+                    ]
+                }
+            ),
+            request=SimpleNamespace(request_id="request"),
+        )
+        states.append(
+            dict(
+                pos=pos,
+                summary=summary,
+                rows=rows,
+                cache=cache,
+                old_lengths={window: n},
+            )
+        )
+        queries.append(q)
+        keys.append(k)
+        values.append(v)
+    metadata = KSAAttentionMetadata.from_states([window], states)
+    actual = paged_attention(
+        torch.cat(queries),
+        torch.cat(keys),
+        torch.cat(values),
+        {"layer.0.text": pool, "layer.0.summary": summary_pool}
+        if separate_pools
+        else pool,
+        metadata,
+        0,
+        torch.cat([s["pos"] for s in states]),
+        torch.cat([s["summary"] for s in states]),
+        max(len(s["pos"]) for s in states),
+    )
+    tolerance = 0.008 if dtype == torch.bfloat16 else 2e-6
+    torch.testing.assert_close(
+        actual, torch.cat(expected), atol=tolerance, rtol=tolerance
+    )

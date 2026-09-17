@@ -104,6 +104,60 @@ class _DecodeBuffers:
                 value[: len(old_v)].copy_(old_v)
 
 
+class _PagedDecodeBuffers:
+    """Graph inputs contain only new rows and linear-size page metadata."""
+
+    def __init__(self, model, batch, capacity):
+        from .ksa_attention import KSAAttentionMetadata
+
+        self.model = model
+        parameter = next(model.parameters())
+        self.ids = torch.full(
+            (batch, 2),
+            model.config.summary_token_begin,
+            dtype=torch.long,
+            device=parameter.device,
+        )
+        self.metadata = KSAAttentionMetadata(
+            model.windows, batch, capacity, parameter.device
+        )
+        self.states = [
+            dict(
+                use_triton=True,
+                hidden=None,
+                pos=torch.zeros(2, dtype=torch.long, device=parameter.device),
+                rows=torch.zeros(1, dtype=torch.long, device=parameter.device),
+                summary=torch.tensor([False, True], device=parameter.device),
+                cache=None,
+                start=1,
+                retained={},
+                pending=[],
+            )
+            for _ in range(batch)
+        ]
+
+    def stage(self, requests, prepared):
+        self.metadata.stage(prepared, padded=True)
+        for i, ((ids, _, cache), source, target) in enumerate(
+            zip(requests, prepared, self.states)
+        ):
+            self.ids[i, :1].copy_(ids)
+            target["pos"].fill_(source["start"])
+            target["cache"] = cache
+
+    def run(self):
+        hidden = self.model.embed_input_ids(self.ids.flatten()).view(
+            len(self.states), 2, -1
+        )
+        for state, value in zip(self.states, hidden):
+            state["hidden"] = value
+            state["pending"] = []
+        self.output = self.model._forward_states(
+            self.states, kernel_metadata=self.metadata, commit=False
+        )
+        self.new_kv = [state["pending"] for state in self.states]
+
+
 class KSADecodeGraphs:
     """Bounded lazy graph cache, keyed by batch size and padded history length.
 
@@ -140,12 +194,15 @@ class KSADecodeGraphs:
             ]
             length = max(n for s in prepared for n in s["old_lengths"].values())
             capacity = max(16, 1 << (length - 1).bit_length())
-            key = (len(requests), capacity)
+            paged = all(s.get("use_triton", False) for s in prepared)
+            pool_id = id(requests[0][2].page_pool) if paged else None
+            key = (len(requests), capacity, paged, pool_id)
         if key not in self.graphs:
             if len(self.graphs) == self.max_graphs:
                 self.graphs.popitem(last=False)
             begin = time.perf_counter()
-            buffers = _DecodeBuffers(self.model, *key)
+            buffer_type = _PagedDecodeBuffers if paged else _DecodeBuffers
+            buffers = buffer_type(self.model, len(requests), capacity)
             buffers.stage(requests, prepared)
             graph = None
             if self.enabled:

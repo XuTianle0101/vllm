@@ -31,6 +31,7 @@ class KSAForCausalLM(Qwen3ForCausalLM):
         super().__init__(vllm_config=vllm_config, prefix=prefix)
         self.text_row_indices = None
         self.reference_attention = False
+        self.triton_attention = True
         self.return_full_vocab_logits = False
         self.layer_observer = None
         limit = getattr(config, "truncate_predict_nums", config.summary_token_begin)
@@ -54,6 +55,14 @@ class KSAForCausalLM(Qwen3ForCausalLM):
                 min(MAX_CACHED_TEXT_TOKENS, self.config.max_position_embeddings),
             )
         return KSACache(page_pool=self.page_pool, request=self.page_pool.new_request())
+
+    def _use_triton(self, cache, device):
+        return (
+            self.triton_attention
+            and not self.reference_attention
+            and device.type == "cuda"
+            and (cache is None or cache.page_pool is not None)
+        )
 
     def _prepare(
         self,
@@ -127,6 +136,7 @@ class KSAForCausalLM(Qwen3ForCausalLM):
             ids = positions.new_full(pos.shape, self.config.summary_token_begin)
             hidden = self.embed_input_ids(ids)
             hidden[rows] = inputs_embeds
+        use_triton = self._use_triton(cache, positions.device)
         masks = {}
         retained = {}
         old_lengths = {}
@@ -137,12 +147,14 @@ class KSAForCausalLM(Qwen3ForCausalLM):
                 old_lengths[window] = len(old_pos)
                 key_pos = torch.cat((old_pos, pos))
                 key_summary = torch.cat((old_summary, summary))
-                masks[window] = visibility_mask(
-                    pos, summary, window, key_pos, key_summary
-                )
+                if not use_triton:
+                    masks[window] = visibility_mask(
+                        pos, summary, window, key_pos, key_summary
+                    )
             else:
                 key_pos, key_summary = pos, summary
-                masks[window] = visibility_mask(pos, summary, window)
+                if not use_triton:
+                    masks[window] = visibility_mask(pos, summary, window)
             if cache is not None:
                 first_block = max(0, end // 8 - window)
                 old_first_block = max(0, start // 8 - window)
@@ -159,6 +171,7 @@ class KSAForCausalLM(Qwen3ForCausalLM):
                     else (key_pos[keep], key_summary[keep])
                 )
         return dict(
+            use_triton=use_triton,
             hidden=hidden,
             pos=pos,
             rows=rows,
@@ -202,10 +215,27 @@ class KSAForCausalLM(Qwen3ForCausalLM):
         states = [self._prepare(ids, pos, cache=cache) for ids, pos, cache in requests]
         return self._forward_states(states)
 
-    def _forward_states(self, states):
+    def _forward_states(self, states, *, kernel_metadata=None, commit=True):
         hidden = torch.cat([state["hidden"] for state in states])
         pos = torch.cat([state["pos"] for state in states])
         sizes = [len(state["pos"]) for state in states]
+        use_triton = all(s.get("use_triton", False) for s in states)
+        if use_triton:
+            from .ksa_attention import KSAAttentionMetadata, paged_attention
+
+            if kernel_metadata is None:
+                kernel_metadata = KSAAttentionMetadata.from_states(self.windows, states)
+            summary = torch.cat([state["summary"] for state in states])
+            pools = {
+                id(s["cache"].page_pool): s["cache"].page_pool
+                for s in states
+                if s["cache"] is not None
+            }
+            if len(pools) > 1:
+                raise ValueError("batched KSA attention requires a shared page pool")
+            pool = next(iter(pools.values())).storage if pools else hidden
+        elif any(s.get("use_triton", False) for s in states):
+            raise ValueError("cannot mix reference and Triton caches in one batch")
         residual = None
         for index, layer in enumerate(self.model.layers):
             if residual is None:
@@ -223,61 +253,80 @@ class KSAForCausalLM(Qwen3ForCausalLM):
                 q = q.reshape(-1, attn.num_heads, attn.head_dim)
                 k = k.reshape(-1, attn.num_kv_heads, attn.head_dim)
                 v = v.reshape(-1, attn.num_kv_heads, attn.head_dim)
-            outputs = []
             window = self.windows[index]
-            for state, query, key, value in zip(
-                states, q.split(sizes), k.split(sizes), v.split(sizes)
-            ):
-                cache = state["cache"]
-                keep = state["retained"].get(window)
-                if cache is not None and cache.page_pool is not None:
-                    if state["start"] or not cache.page_pool.compact_prefill:
-                        state["pending"].append((key, value))
-                    else:
-                        state["pending"].append(
-                            (key, value.clone())
-                            if keep is None
-                            else (key[keep], value[keep])
-                        )
-                if state["start"]:
-                    old_k, old_v = (
-                        cache.layers[index]
-                        if cache.page_pool is None
-                        else cache.page_pool.read(
-                            cache.request, index, cache.layouts[window]
-                        )
-                    )
-                    if (
-                        old_k.shape[0] != state["old_lengths"][window]
-                        or old_v.shape != old_k.shape
-                    ):
-                        raise ValueError(
-                            "KSA cache row count does not match text count"
-                        )
-                    key, value = torch.cat((old_k, key)), torch.cat((old_v, value))
-                if cache is not None and cache.page_pool is None:
-                    state["pending"].append(
-                        (key, value) if keep is None else (key[keep], value[keep])
-                    )
+            if use_triton:
                 with record_function("ksa.attention"):
-                    outputs.append(
-                        prefill_attention(
-                            query,
-                            key,
-                            value,
-                            state["masks"][window],
-                            self.reference_attention,
-                        )
+                    attention_output = paged_attention(
+                        q, k, v, pool, kernel_metadata, index, pos, summary, max(sizes)
                     )
+                for state, key, value in zip(states, k.split(sizes), v.split(sizes)):
+                    cache = state["cache"]
+                    keep = state["retained"].get(window)
+                    if (
+                        cache is not None
+                        and not state["start"]
+                        and cache.page_pool.compact_prefill
+                        and keep is not None
+                    ):
+                        key, value = key[keep], value[keep]
+                    state["pending"].append((key, value))
+            else:
+                outputs = []
+                window = self.windows[index]
+                for state, query, key, value in zip(
+                    states, q.split(sizes), k.split(sizes), v.split(sizes)
+                ):
+                    cache = state["cache"]
+                    keep = state["retained"].get(window)
+                    if cache is not None and cache.page_pool is not None:
+                        if state["start"] or not cache.page_pool.compact_prefill:
+                            state["pending"].append((key, value))
+                        else:
+                            state["pending"].append(
+                                (key, value.clone())
+                                if keep is None
+                                else (key[keep], value[keep])
+                            )
+                    if state["start"]:
+                        old_k, old_v = (
+                            cache.layers[index]
+                            if cache.page_pool is None
+                            else cache.page_pool.read(
+                                cache.request, index, cache.layouts[window]
+                            )
+                        )
+                        if (
+                            old_k.shape[0] != state["old_lengths"][window]
+                            or old_v.shape != old_k.shape
+                        ):
+                            raise ValueError(
+                                "KSA cache row count does not match text count"
+                            )
+                        key, value = torch.cat((old_k, key)), torch.cat((old_v, value))
+                    if cache is not None and cache.page_pool is None:
+                        state["pending"].append(
+                            (key, value) if keep is None else (key[keep], value[keep])
+                        )
+                    with record_function("ksa.attention"):
+                        outputs.append(
+                            prefill_attention(
+                                query,
+                                key,
+                                value,
+                                state["masks"][window],
+                                self.reference_attention,
+                            )
+                        )
+                attention_output = torch.cat(outputs)
             with record_function("ksa.projection_output_mlp"):
-                hidden, _ = attn.o_proj(torch.cat(outputs).flatten(1))
+                hidden, _ = attn.o_proj(attention_output.flatten(1))
                 hidden, residual = layer.post_attention_layernorm(hidden, residual)
                 hidden = layer.mlp(hidden)
             if self.layer_observer is not None:
                 for state, value in zip(states, (hidden + residual).split(sizes)):
                     self.layer_observer(index, value, state["rows"], state["summary"])
         hidden, _ = self.model.norm(hidden, residual)
-        for state in states:
+        for state in states if commit else []:
             cache = state["cache"]
             if cache is None:
                 continue

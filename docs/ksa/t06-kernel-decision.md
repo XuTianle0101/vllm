@@ -54,3 +54,16 @@ prefill 使用按绝对文本位置和 summary 标志计算的分块谓词，覆
 
 5090 上必须单独验证 Triton 编译、FP32 oracle/BF16 误差、分页边界和图 replay；
 A100 的结果不能替代。最终接入仍以 T06 五次稳态端到端测量和既有精度门禁为准。
+
+## T06 实施记录（2026-09-17）
+
+在上述决策基础上，prefill/decode 都使用仓库内 Triton：按请求、KV head 和
+query tile 分配 program，GQA query heads 共享 KV。直接读取 scheduler 的物理槽位，
+支持独立 text/summary storage，也支持独立 runner 的共享 storage；新 KV 在本次
+attention 后才提交。query tile 内用绝对位置和 summary 标志生成谓词，局部文本、
+远端 summary 和 summary 自身在同一个在线 softmax 中归一化。
+
+不复用官方接口，因此没有官方 gather/格式转换；单算子脚本分别报告现有参考路径
+的 gather、attention、合计，以及 Triton metadata staging。CUDA Graph 固定的是
+metadata 和新输入地址，不再复制历史 KV。Python/SDPA 和 FP32 oracle 保留为对照。
+实测结果待当前提交完成服务器实验后填写，不预先宣称收益。
