@@ -921,36 +921,50 @@ def test_v1_configuration_rejects_unsupported_execution(tiny_model, monkeypatch)
 
 
 @pytest.mark.parametrize("paged", [False, True])
-def test_decode_graph_buffers_reuse_slots_without_history_leaks(tiny_model, paged):
+@pytest.mark.parametrize(
+    "device",
+    [
+        "cpu",
+        pytest.param(
+            "cuda",
+            marks=pytest.mark.skipif(
+                not torch.cuda.is_available(), reason="requires CUDA graph capture"
+            ),
+        ),
+    ],
+)
+def test_decode_graph_buffers_reuse_slots_without_history_leaks(
+    tiny_model, paged, device
+):
     """Fixed buffers preserve mixed phases, eviction and replacement requests."""
     from vllm.model_executor.models.ksa_decode import KSACache
     from vllm.model_executor.models.ksa_graph import KSADecodeGraphs
 
-    model = tiny_model
-    runner = KSADecodeGraphs(model, enabled=False, max_graphs=2)
+    model = tiny_model.to(device)
+    runner = KSADecodeGraphs(model, enabled=device == "cuda", max_graphs=2)
     make_cache = model.new_cache if paged else KSACache
     actual = [make_cache(), make_cache()]
     expected = [KSACache(), KSACache()]
     with torch.inference_mode():
         try:
             for i, length in enumerate((7, 12)):
-                ids = torch.arange(length) % 63
-                model(ids, torch.arange(length), cache=actual[i])
-                model(ids, torch.arange(length), cache=expected[i])
+                ids = torch.arange(length, device=device) % 63
+                model(ids, torch.arange(length, device=device), cache=actual[i])
+                model(ids, torch.arange(length, device=device), cache=expected[i])
             held_output = None
             for step in range(24):
                 if step == 11:
                     actual[0].clear()
                     expected[0].clear()
-                    ids = torch.tensor([31, 32, 33])
-                    model(ids, torch.arange(3), cache=actual[0])
-                    model(ids, torch.arange(3), cache=expected[0])
+                    ids = torch.tensor([31, 32, 33], device=device)
+                    model(ids, torch.arange(3, device=device), cache=actual[0])
+                    model(ids, torch.arange(3, device=device), cache=expected[0])
                 order = [0, 1] if step % 2 else [1, 0]
                 batches = [
                     [
                         (
-                            torch.tensor([(step + i) % 63]),
-                            torch.tensor([caches[i].text_tokens]),
+                            torch.tensor([(step + i) % 63], device=device),
+                            torch.tensor([caches[i].text_tokens], device=device),
                             caches[i],
                         )
                         for i in order
@@ -976,6 +990,9 @@ def test_decode_graph_buffers_reuse_slots_without_history_leaks(tiny_model, page
                             torch.testing.assert_close(
                                 value, target, atol=2e-6, rtol=2e-5
                             )
+            if device == "cuda":
+                assert runner.replays == 24
+            assert len(runner.graphs) <= 2
         finally:
             for cache in actual + expected:
                 cache.clear()

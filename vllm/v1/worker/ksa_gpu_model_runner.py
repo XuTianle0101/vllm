@@ -141,11 +141,11 @@ class KSAGPUModelRunner(GPUModelRunner):
     def __init__(self, vllm_config, device):
         super().__init__(vllm_config, device)
         self.ksa_caches = {}
+        self.ksa_graphs = None
 
     def load_model(self, load_dummy_weights=False):
         super().load_model(load_dummy_weights)
         self.model.return_full_vocab_logits = True
-        self.ksa_graphs = None
         extra = self.vllm_config.additional_config
         if isinstance(extra, dict) and extra.get("ksa_cudagraph", False):
             from vllm.model_executor.models.ksa_graph import KSADecodeGraphs
@@ -213,7 +213,9 @@ class KSAGPUModelRunner(GPUModelRunner):
                 )
             )
             offset += length
-        executor = self.ksa_graphs or self.model
+        executor = self.model
+        if self.ksa_graphs is not None and 2 * len(requests) <= self.max_num_tokens:
+            executor = self.ksa_graphs
         hidden = torch.cat(executor.forward_batch(requests))
         sample_hidden = hidden[logits_indices]
         logits = self.model.compute_logits(sample_hidden)
