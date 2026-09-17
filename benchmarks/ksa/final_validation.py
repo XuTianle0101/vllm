@@ -155,6 +155,8 @@ def worker(args):
                 f"TTFT {row['ttft_ms']:.1f}, decode {row['mean_decode_ms']:.2f}",
                 flush=True,
             )
+        if any(r["status"] != "pass" for r in rows if r["repetition"] >= 0):
+            raise AssertionError("Graph capture contaminated steady measurements")
     finally:
         engine.engine_core.shutdown()
 

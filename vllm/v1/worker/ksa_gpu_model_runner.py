@@ -172,7 +172,9 @@ class KSAGPUModelRunner(GPUModelRunner):
         if isinstance(extra, dict) and extra.get("ksa_cudagraph", False):
             from vllm.model_executor.models.ksa_graph import KSADecodeGraphs
 
-            self.ksa_graphs = KSADecodeGraphs(self.model)
+            self.ksa_graphs = KSADecodeGraphs(
+                self.model, max_graphs=max(4, min(8, self.max_num_reqs))
+            )
 
     def get_kv_cache_spec(self):
         attn = self.model.model.layers[0].self_attn
