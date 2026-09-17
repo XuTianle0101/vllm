@@ -1,7 +1,8 @@
 # KSA vLLM 适配文档
 
-当前状态：**T00 基线已冻结，T01–T03 已通过 A100 验收；T04 专用 eager 路径已验收；通用 `vllm serve` / V1 接入已实现并完成 A100 功能验证。**
+当前状态：**T00 基线已冻结，T01–T03 已通过 A100 验收；T04 专用 eager 路径已验收；通用 `vllm serve` / V1 接入已实现并完成 A100 功能验证；T05 decode 图与 profiling 已验收。**
 
+- [T05 CUDA Graph 与 profiling](t05-cudagraph-profiling.md)：精度、启动成本、实测收益与退化、T06 路径选择。
 - [通用 vllm serve / V1](v1-serving.md)：标准引擎、压缩 KV 调度、采样与服务验证。
 - [T04 批处理与基础服务](t04-batching-chunked-prefill.md)：分块、预算、抢占重算及独立 HTTP 入口。
 - [T03 分页缓存与验收](t03-compressed-kv.md)：真实页分配、压缩占用、独立性能对照与限制。

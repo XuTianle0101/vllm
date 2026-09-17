@@ -6,6 +6,7 @@
 输入 ID、RoPE 位置、可见性 mask 和历史 KV 有固定地址，图槽位不拥有请求或分页表。
 在图外验证输入、更新 metadata、gather KV 和提交新 KV；这部分 CPU/同步开销仍存在。
 输出复制为调用方所有，避免下一次 replay 覆盖上一次返回值。
+LM head 与采样留在图外；V1 在两行 padding 会超过 worker 预算时回退 eager。
 
 标准 V1 入口可通过 `--additional-config '{"ksa_cudagraph":true}'` 选择此路径；
 仍需 `--enforce-eager` 禁用通用 dense CUDA Graph/编译器。
@@ -28,6 +29,7 @@ CPU 测试在真实小模型上运行相同固定缓冲区计算，检查混合�
 从仓库根目录执行（`T05_SHA` 使用 ticket 中最终代码 SHA，输出目录不能存在）：
 
 ```bash
+T05_SHA=bc74fbe2c2b8099c987ee3d38eeda35027ef8418
 git fetch origin releases/v0.26.0-ksa
 git checkout "$T05_SHA"
 test "$(git rev-parse HEAD)" = "$T05_SHA"
@@ -47,4 +49,25 @@ trace 包含初始化请求的 eager prefill，应按 `ksa.graph_replay` 等范�
 `ksa.metadata`、`ksa.kv_stage`、`ksa.kv_commit` 定位图外成本。
 图 replay 没有 Python 内层 range，GPU kernel 热点和图外范围需分别阅读。
 
-实测结果和 T06 路径选择在验收报告生成后回填。
+A100 验收已完成，见 [完整报告](results/T05/a100-d38983dd88/README.md) 和
+[T06 路径决策](t06-kernel-decision.md)。核心矩阵实际执行于
+`d38983dd881a9766f0349254d5b0b6fda95b3753`；上面最终代码提交保持图数学计算及
+矩阵脚本不变，增加了 V1 padding 预算保护和以下补充验证。
+
+```bash
+OMP_NUM_THREADS=1 .venv/bin/python benchmarks/ksa/cudagraph_v1.py \
+  --expected-sha "$T05_SHA" --model ../models/KSA-4B-base \
+  --baseline ../results/T00/a100-repaired-20260916T032325Z-0eea77a7ba21/raw \
+  --output ../results/T05/v1-final
+mkdir -p ../results/T05/summaries
+.venv/bin/python benchmarks/ksa/summarize_cudagraph.py \
+  --raw ../results/T05/a100-final --output ../results/T05/summaries/a100.json
+```
+
+V1 验证使用真实调度器、页表和槽位，导出共同生成前缀 logits；轨迹分歧单列，
+分歧后的 logits 不作错误的逐步比较。摘要脚本剔除 trace 中的 prefill，分别汇总
+八个 decode 步的 CPU 范围与 GPU kernel 活动时间，避免 GPU annotation 重复计数。
+请返回两个结果目录的 JSON 和运行日志；失败时保留 trace、logits 与异常，不覆盖原目录。
+
+本轮 1K/batch=1 图路径为 2.043×，4K/batch=8 为 0.399×，因此图模式保持显式开启。
+该性能矩阵不含服务 scheduler/网络，不能将它作为标准服务吞吐或 5090 收益。

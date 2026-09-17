@@ -70,7 +70,9 @@ if __name__ == "__main__":
 - 验证范围为单张 A100、BF16、TP=PP=DP=1、eager，总文本上下文最多 8192，
   单次每请求 chunk 最多 4096。前缀缓存、量化、LoRA、推测解码、V2、异步调度、
   非 auto KV dtype、KV 传输/卸载、sleep、prompt embeddings 和 pooling 明确拒绝。
-  CUDA Graph、128K 和新的高性能 attention 算子尚未交付。
+  128K 和新的高性能 attention 算子尚未交付。
+  T05 已增加可选 decode CUDA Graph，开启方式与性能限制见
+  [T05 说明](t05-cudagraph-profiling.md)。
 - Chat 使用标准服务的模板处理；base checkpoint 没有模板时，需要用户提供合适的
   `--chat-template`。此次 HTTP 验证针对 `/v1/completions`，未替 base 模型编造模板。
 

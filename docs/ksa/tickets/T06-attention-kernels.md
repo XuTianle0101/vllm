@@ -20,7 +20,10 @@ FP32 小规模参考与 BF16 误差测试，覆盖分页、窗口边界、summar
 
 ## 交付记录
 
-- prefill/decode 路径选择与依据：待 profiling
+- prefill/decode 路径选择与依据：[T05 决策](../t06-kernel-decision.md)。
+  均选仓库内 Triton；官方发布的 CuTe wheel 不接受 SM120，且接口未提供 KSA 双组分页。
+  T05 trace 显示 copy/cast、math attention 和图外 KV 管理开销，应优先直接读页与融合。
+  本 ticket 尚未启动，没有 Triton 实测收益。
 - 提交 SHA：待实现
 - 本地检查：未执行
 - 服务器命令：待脚本实现后填写
