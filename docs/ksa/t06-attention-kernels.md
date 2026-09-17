@@ -24,10 +24,10 @@ scheduler 页池中。页分配、输入校验和 KV 提交仍在图外，decode
 
 ## 复现实验
 
-从仓库根目录执行；输出目录不能已存在。`T06_SHA` 为下述实际测量提交。
+从仓库根目录执行；输出目录不能已存在。`T06_SHA` 包含完整验证脚本、V1 profiling 与槽位整理修复；Triton 内核数学计算未改。
 
 ```bash
-T06_SHA=a455b6608b07e0d121af51d03a988b6108739e8a
+T06_SHA=14a46ddc3af405ceac6647305d736cf59a22d229
 git fetch origin releases/v0.26.0-ksa
 git checkout "$T06_SHA"
 test "$(git rev-parse HEAD)" = "$T06_SHA"
@@ -42,7 +42,7 @@ OMP_NUM_THREADS=1 .venv/bin/python benchmarks/ksa/attention_kernels.py \
 OMP_NUM_THREADS=1 .venv/bin/python benchmarks/ksa/cudagraph_v1.py \
   --expected-sha "$T06_SHA" --model ../models/KSA-4B-base \
   --baseline ../results/T00/a100-repaired-20260916T032325Z-0eea77a7ba21/raw \
-  --output ../results/T06/v1-final
+  --output ../results/T06/v1-final --compare-t05 --timing-repeats 5
 ```
 
 完整模型测量复用 T05 的固定输入、教师强制、冻结 HF logits、阈值和 decode 计时：
@@ -72,3 +72,8 @@ T06 的标准 V1 命令额外加 `--compare-t05`，会将首轮 eager 设置为 
 脚本要求每个形状的 prefill、eager decode、graph decode 均满足 Triton 最慢重复
 仍快于 T05 最快重复，作为超过本次观测波动的保守门禁；同时核验冻结精度与页归还。
 单算子的最终计时在 CUDA Graph 中用事件测量，另用墙钟报告 metadata 更新开销。
+
+本轮用户确认以 A100 验收；5090 保留为后续独立验证，不阻塞 T06 关闭。
+`--timing-repeats 5` 另运行 V1 的 1K/batch=4、32 输出 token 测量，移除精度阶段
+的逐请求 logits 导出钩子。包括真实 scheduler、chunked prefill、采样与 decode，
+不含 HTTP。保存 `timing.json`，首轮预热和任何重捕获均须单列。

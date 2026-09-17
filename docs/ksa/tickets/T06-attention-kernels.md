@@ -1,7 +1,8 @@
 # T06：官方算子或 Triton
 
-- 状态：IN_PROGRESS
+- 状态：DONE
 - 依赖：T05 DONE
+- 验收硬件：A100（本轮用户明确确认）；5090 后续独立验证。
 - 目标：消除已定位的 attention 瓶颈，提升端到端性能。
 
 ## 实现范围
@@ -20,12 +21,25 @@ FP32 小规模参考与 BF16 误差测试，覆盖分页、窗口边界、summar
 
 ## 交付记录
 
-- prefill/decode 路径选择与依据：[T05 决策](../t06-kernel-decision.md)。
-  均选仓库内 Triton；官方发布的 CuTe wheel 不接受 SM120，且接口未提供 KSA 双组分页。
-  T05 trace 显示 copy/cast、math attention 和图外 KV 管理开销，应优先直接读页与融合。
-  实现批量分页 Triton 与页元数据图缓冲区，正在进行 A100 验证；5090 尚未实测。
-- 提交 SHA：待实现
-- 本地检查：未执行
-- 服务器命令：待脚本实现后填写
-- 结果路径：未生成
-- 结论：未验收
+- prefill/decode 均选仓库内 Triton：[路径依据](../t06-kernel-decision.md)、
+  [实现与完整复现命令](../t06-attention-kernels.md)。直接读取两组物理页槽位，
+  prefill tile 谓词与在线 softmax，decode 8 路 split-K 稳定合并；不修改 C++/CUDA。
+- 核心与完整模型性能 SHA：`a455b6608b07e0d121af51d03a988b6108739e8a`。
+- 最终代码/V1 验证 SHA：`14a46ddc3af405ceac6647305d736cf59a22d229`。
+  补齐 V1 启动 profiling 的假页池，并消除独立页池 metadata 的布尔索引同步。
+- 检查：完整回归 116/116，最终 metadata 优化后受影响专项（含 GPU） 38/38；
+  适用 pre-commit 检查通过。CPU 与显式 Python/FP32 参考保留。
+- A100 精度：冻结教师强制 68/68，标准 V1 对 T05 同前缀 8/8；
+  24/24 单算子 BF16 对照通过。图重排、summary 自身、分页、短尾和空 split 已覆盖。
+- A100 完整模型：1K/4K × batch 1/4/8，32 步，预热后五次重复。
+  prefill 为 1.77–2.83×，eager decode 为 1.15–2.56×；
+  graph 相对 T05 graph 为 2.07–11.50×。18 项新路径最慢重复均快于旧路径最快重复。
+  更快旧路径的对照亦在报告中列出，没有只以退化 graph 为基准。
+- 页状态：完整模型实验后 139039/139039 页全部归还。
+- 服务器命令：已在当前 A100 执行；完整命令与输出文件说明见上述运行文档。
+- 结果：[A100 报告与哈希摘要](../results/T06/a100-a455b6608b/README.md)，
+  原始数据保留在工作区 `../results/T06/`，不提交大型 logits。
+- V1 调度总耗时补测：1K/batch=4、32 输出 token，预热后五次；
+  T05 eager 8.77 s，Triton eager 7.11 s、graph 6.50 s，均超过波动且无稳态重捕获。
+- 结论：按用户确认，A100 精度、调度与端到端性能门禁通过，T06 DONE。
+  5090 未实测，按用户确认不阻塞本轮；没有启动 T07 长上下文验收。

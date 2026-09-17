@@ -10,7 +10,9 @@ T00 已完成 A100 精度、校准与性能验收，基线与容差已冻结。T
 | [T03](T03-compressed-kv.md) | 压缩 KV 与 Python 优化 | T02 | DONE |
 | [T04](T04-batching-chunked-prefill.md) | 批处理与 chunked prefill | T03 | DONE |
 | [T05](T05-cudagraph-profiling.md) | CUDA Graph 与瓶颈定位 | T04 | DONE |
-| [T06](T06-attention-kernels.md) | 官方算子或 Triton | T05 | TODO |
+| [T06](T06-attention-kernels.md) | 官方算子或 Triton | T05 | DONE |
 | [T07](T07-final-validation.md) | 最终精度与性能验收 | T06 | TODO |
 
 逐项遵循 [工作流](../workflow.md)。当前 ticket 的服务器结果通过后才启动下一项。每个文件中的“交付记录”在实际开发时填写，不能提前填写提交 SHA 或通过结论。
+
+T06 已按用户确认完成 A100 验收；5090 单列为后续未验证项，不阻塞本轮关闭。
