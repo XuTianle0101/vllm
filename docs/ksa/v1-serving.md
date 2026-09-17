@@ -62,15 +62,16 @@ if __name__ == "__main__":
   所有请求当前 chunk 的 attention 完成后才写回新 KV。重排按请求 ID 关联，
   抢占恢复从文本历史重新生成 summary，取消/完成清理对应 worker 状态。
 - 显存 profiling 包括 summary、历史 gather、mask 和待提交 KV；历史缓存本体由
-  scheduler 的 KV 预算承担，不重复计入 activation。当前 attention 仍逐请求执行，
-  使用显式 mask 和历史 gather，不能把本次接入宣称为长上下文性能优化。
+  scheduler 的 KV 预算承担，不重复计入 activation。T06 已将生产 attention 替换为批量分页 Triton，不再构造平方 mask 或 gather 完整历史；
+  Python 参考仍保留供正确性对照。
 - 内部 summary token 从输入校验中排除，原始词表中对应 logits 为负无穷。
   标准 sampler 的词表宽度保持不变，支持采样、seed、`n`、惩罚参数、stop strings、
   token logprobs、prompt logprobs、echo、SSE 和标准文本 usage。
-- 验证范围为单张 A100、BF16、TP=PP=DP=1、eager，总文本上下文最多 8192，
+- 初始 V1 验证范围为单张 A100、BF16、TP=PP=DP=1、eager、8192 文本上下文；
+  T07 已将运行时上限扩展为 131072，最终长上下文结论见 [T07](t07-final-validation.md)。
   单次每请求 chunk 最多 4096。前缀缓存、量化、LoRA、推测解码、V2、异步调度、
   非 auto KV dtype、KV 传输/卸载、sleep、prompt embeddings 和 pooling 明确拒绝。
-  128K 和新的高性能 attention 算子尚未交付。
+  生产分页 attention 已由 T06 交付。
   T05 已增加可选 decode CUDA Graph，开启方式与性能限制见
   [T05 说明](t05-cudagraph-profiling.md)。
 - Chat 使用标准服务的模板处理；base checkpoint 没有模板时，需要用户提供合适的

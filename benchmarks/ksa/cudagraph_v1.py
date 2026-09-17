@@ -97,7 +97,11 @@ def run(args):
                 order.reverse()
             outputs = llm.generate(
                 [prompts[i] for i in order],
-                SamplingParams(temperature=0, max_tokens=32, ignore_eos=True),
+                SamplingParams(
+                    temperature=0,
+                    max_tokens=128 if args.all_cases else 32,
+                    ignore_eos=True,
+                ),
             )
             results.append(
                 {i: list(out.outputs[0].token_ids) for i, out in zip(order, outputs)}

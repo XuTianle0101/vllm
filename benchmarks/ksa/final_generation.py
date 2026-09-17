@@ -68,15 +68,15 @@ def run(args):
             )
             for rep, mode in enumerate(("eager", "graph", "graph")):
                 tokens = generation["generations"][rep][str(index)]
-                if len(tokens) != 32:
-                    raise ValueError("Expected 32 generated text tokens")
+                if len(tokens) != 128:
+                    raise ValueError("Expected 128 generated text tokens")
                 key = tuple(tokens)
                 if key not in trajectories:
                     reference = teacher(torch, model, ids, tokens[:-1])
                     trajectories[key] = reference
                     torch.save(reference, args.output / f"hf-{name}-{rep}.pt")
                 reference = trajectories[key]
-                positions = list(range(len(prompt) - 1, len(prompt) + 31))
+                positions = list(range(len(prompt) - 1, len(prompt) + 127))
                 actual = torch.stack(
                     [captured[rep][tuple(prompt)][p] for p in positions]
                 )
@@ -99,7 +99,7 @@ def run(args):
                         mode=mode,
                         repeat=rep,
                         chosen_token_max_hf_margin=margin,
-                        exact_frozen_hf_tokens=tokens == original[:32],
+                        exact_frozen_hf_tokens=tokens == original,
                         **row,
                     )
                 )

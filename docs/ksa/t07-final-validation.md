@@ -53,18 +53,28 @@ mkdir -p "$OUT"
 .venv/bin/python -m pytest tests/model_executor/test_ksa_prefill.py -q
 .venv/bin/python -m unittest discover -s benchmarks/ksa -p test_baseline.py
 .venv/bin/python benchmarks/ksa/plain_qwen3.py --output "$OUT/plain-qwen3"
+.venv/bin/python benchmarks/ksa/final_decode.py --model "$MODEL" \
+  --baseline "$BASELINE" --expected-sha "$T07_SHA" --output "$OUT/decode"
 .venv/bin/python benchmarks/ksa/v1.py --model "$MODEL" --baseline "$BASELINE" \
   --all-cases --max-model-len 131072 --row-budget 4096 --output "$OUT/accuracy"
 .venv/bin/python benchmarks/ksa/cudagraph_v1.py --model "$MODEL" \
   --baseline "$BASELINE" --expected-sha "$T07_SHA" --all-cases \
   --output "$OUT/graphs-retrieval"
+.venv-ksa-hf/bin/python benchmarks/ksa/final_generation.py --model "$MODEL" \
+  --baseline "$BASELINE" --expected-sha "$T07_SHA" \
+  --graphs "$OUT/graphs-retrieval" --output "$OUT/generation-hf"
 .venv/bin/python benchmarks/ksa/v1_pressure.py --model "$MODEL" \
   --baseline "$BASELINE" --output "$OUT/pressure"
 .venv/bin/python benchmarks/ksa/final_validation.py --model "$MODEL" \
-  --baseline "$BASELINE" --expected-sha "$T07_SHA" --output "$OUT/performance"
+  --baseline "$BASELINE" --expected-sha "$T07_SHA" --batches 1 \
+  --output "$OUT/performance"
+.venv/bin/python benchmarks/ksa/final_validation.py --model "$MODEL" \
+  --baseline "$BASELINE" --expected-sha "$T07_SHA" --batches 4 8 --modes graph \
+  --output "$OUT/performance"
 ```
 
-启动上述 HTTP 服务后运行，结束后停止服务再做其他 GPU 实验：
+分别将上述服务的 `ksa_cudagraph` 设置为 true / false 验证 graph / eager，
+每次使用不同输出目录。结束后停止服务再做其他 GPU 实验：
 
 ```bash
 .venv/bin/python benchmarks/ksa/v1_serving.py --url http://127.0.0.1:18005 \
@@ -74,7 +84,8 @@ mkdir -p "$OUT"
 ## 指标定义与门禁
 
 性能矩阵是 4096/16384/32768/65536/130944 prompt × 128 输出，vLLM 并发 1/4/8，
-每个形状分别 eager/graph；HF 官方缓存路径只跑单请求。同卡子进程顺序执行，
+单请求分别 eager/graph，并发 4/8 测量 graph 生产配置；
+HF 官方缓存路径只跑单请求。同卡子进程顺序执行，
 每项一次预热、五次正式重复。失败子进程不会阻断其他形状，OOM 保留 traceback。
 
 vLLM 时间包含标准 V1 scheduler、模型、采样和主机分发，不含 HTTP；
@@ -87,8 +98,12 @@ TPOT 从相邻 token 返回时间计算；并发排队、抢占和混合 prefill
 `summary.json` 只评价性能，不会自动宣称 T07 完成。
 16K/32K/64K 的 graph 单请求 decode 最慢重复必须快于 HF 最快重复，
 eager 同时披露。缺失、OOM、少于五次或重捕获均不得视为通过。
-长距离检索检查原输入中的 `expected_answer`；生成轨迹差异只比较共同前缀。
+长距离检索检查原输入中的 `expected_answer`；最终固定生成长度与 T00 一致，为 128。
+`final_generation.py` 在冻结 HF 环境中逐条复核 eager/graph 的完整生成前缀，
+相同轨迹复用 HF logits；实际选择的 token 也必须符合冻结的 0.5 margin 门禁。
 冻结教师位置 logits 比较覆盖全输入集，避免导出长序列全部词表 logits。
+`final_decode.py` 使用三请求混合组和逐步 teacher tokens 验证真实缓存 eager/graph decode；
+`v1.py` 另外验证真实 scheduler 的全长 chunked prefill。两者不能互相替代。
 页压缩、128K 无 OOM、精度、服务、生命周期、普通 Qwen3 回归及性能回退分析
 需在结果报告中逐项汇总后，才能将 ticket 改为 DONE。
 
