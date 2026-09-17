@@ -999,18 +999,22 @@ def test_decode_graph_buffers_reuse_slots_without_history_leaks(
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="requires Triton CUDA")
-@pytest.mark.parametrize("dtype", [torch.float32, torch.bfloat16])
+@pytest.mark.parametrize(
+    ("dtype", "head_dim"),
+    [(torch.float32, 32), (torch.bfloat16, 32), (torch.bfloat16, 128)],
+)
 @pytest.mark.parametrize("window", [0, 1, 128, 16768])
 @pytest.mark.parametrize("separate_pools", [False, True])
 @pytest.mark.parametrize("decode_only", [False, True])
 def test_paged_triton_joint_softmax_matches_fp32_oracle(
-    dtype, window, separate_pools, decode_only
+    dtype, head_dim, window, separate_pools, decode_only
 ):
     """Random physical pages, mixed chunks and tails must share one softmax.
 
     The kernel consumes packed Q/new KV plus historical physical slots and
     returns one row per query. An independent FP32 masked attention oracle
     catches page addressing, GQA, window and summary-self normalization errors.
+    The production BF16 head dimension also catches shared-memory overflows.
     """
     from vllm.model_executor.models.ksa_attention import (
         KSAAttentionMetadata,
@@ -1020,7 +1024,7 @@ def test_paged_triton_joint_softmax_matches_fp32_oracle(
 
     torch.manual_seed(17)
     states, queries, keys, values, expected = [], [], [], [], []
-    pool = torch.randn(2048, 8, 2, 2, 32, device="cuda", dtype=dtype)
+    pool = torch.randn(2048, 8, 2, 2, head_dim, device="cuda", dtype=dtype)
     summary_pool = torch.randn_like(pool) if separate_pools else pool
     slots = torch.randperm(2047 * 8, device="cuda") + 8
     used = 0
@@ -1033,8 +1037,8 @@ def test_paged_triton_joint_softmax_matches_fp32_oracle(
         used += n
         history = pool.flatten(0, 1)[selected]
         history[old_summary] = summary_pool.flatten(0, 1)[selected[old_summary]]
-        q = torch.randn(len(pos), 8, 32, device="cuda", dtype=dtype)
-        k, v = torch.randn(2, len(pos), 2, 32, device="cuda", dtype=dtype)
+        q = torch.randn(len(pos), 8, head_dim, device="cuda", dtype=dtype)
+        k, v = torch.randn(2, len(pos), 2, head_dim, device="cuda", dtype=dtype)
         expected.append(
             prefill_attention(
                 q,

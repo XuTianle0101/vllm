@@ -288,7 +288,7 @@ def run(args):
                 ],
             )
             for batch in args.batches
-            for mode in ("eager", "graph")
+            for mode in args.modes
         ]
         for name, argv in jobs:
             if name in done:
@@ -321,6 +321,9 @@ def main():
     )
     parser.add_argument("--lengths", type=int, nargs="+", default=LONG)
     parser.add_argument("--batches", type=int, nargs="+", default=[1, 4, 8])
+    parser.add_argument(
+        "--modes", nargs="+", choices=["eager", "graph"], default=["eager", "graph"]
+    )
     parser.add_argument("--worker", action="store_true")
     parser.add_argument("--length", type=int, choices=LONG)
     parser.add_argument("--batch", type=int, choices=[1, 4, 8])

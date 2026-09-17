@@ -260,7 +260,8 @@ def paged_attention(q, k, v, pool, metadata, layer, positions, summary, max_rows
     heads, dim = q.shape[1:]
     kv_heads = k.shape[1]
     group = heads // kv_heads
-    bm = 32
+    wide_prefill = max_rows > 2 and q.dtype == torch.bfloat16
+    bm = 128 if wide_prefill else 32
     output = torch.empty_like(q)
     if isinstance(pool, dict):
         text_pool = pool[f"layer.{layer}.text"]
@@ -313,6 +314,8 @@ def paged_attention(q, k, v, pool, metadata, layer, positions, summary, max_rows
         bm,
         64,
         triton.next_power_of_2(dim),
+        num_warps=8 if wide_prefill else 4,
+        num_stages=2 if wide_prefill else 3,
     )
     if splits > 1:
         _merge[(q.shape[0], heads)](
