@@ -30,3 +30,9 @@
 - 结果：[正式验收报告](../results/T04/a100-8160714ad8/README.md)，原始目录为
   `../results/T04/a100-final/` 和 `../results/T04/http-final/`。
 - 结论：本轮专用 eager 路径通过；不宣称通用 V1 框架已适配，不宣称单请求优于 HF。
+
+## 通用 V1 后续接入
+
+2026-09-17，按用户要求补齐标准 `vllm serve` / `LLM` 路径，复用 V1 scheduler、
+KV 分配器和采样器。实现与验证见 [运行说明](../v1-serving.md)。
+原 T04 验收 SHA 和专用入口结果保持不变；T05/T06 尚未交付。

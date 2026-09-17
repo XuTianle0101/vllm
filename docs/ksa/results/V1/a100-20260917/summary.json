@@ -1,0 +1,116 @@
+{
+  "date": "2026-09-17",
+  "base_sha": "a493692cfefc86c0a266a9cdb32455515b05dfbc",
+  "working_tree_change": true,
+  "baseline_id": "T00-305bf8f9dc429f1af60e",
+  "tolerance_id": "T00-tol-fbd0eb931ac1c7153403",
+  "gpu": "NVIDIA A100-SXM4-80GB",
+  "torch": "2.11.0+cu130",
+  "accuracy": {
+    "257": {
+      "status": "pass",
+      "cases": 17,
+      "max_internal_rows": 257,
+      "worst": {
+        "logits_max_abs_error": 2.2734375,
+        "logits_rmse": 0.6824651956558228,
+        "logprobs_max_abs_error": 1.0937271118164062,
+        "max_mismatch_margin": 0.25
+      },
+      "raw": "../results/V1/a100-257-final"
+    },
+    "31": {
+      "status": "pass",
+      "cases": 17,
+      "max_internal_rows": 31,
+      "worst": {
+        "logits_max_abs_error": 4.5,
+        "logits_rmse": 1.4190696477890015,
+        "logprobs_max_abs_error": 1.0625171661376953,
+        "max_mismatch_margin": 0.25
+      },
+      "raw": "../results/V1/a100-31-native"
+    }
+  },
+  "t04_frozen_accuracy_worst": {
+    "logits_max_abs_error": 4.125,
+    "logits_rmse": 1.3573124408721924,
+    "logprobs_max_abs_error": 1.1249656677246094,
+    "max_mismatch_margin": 0.25
+  },
+  "pressure": {
+    "status": "pass",
+    "preemptions": 1,
+    "steps": 154,
+    "output_tokens_per_request": 80,
+    "teacher_forced_comparisons": {
+      "pressure-a": {
+        "status": "pass",
+        "logits_max_abs_error": 0.4375,
+        "logits_rmse": 0.08573993295431137,
+        "logprobs_max_abs_error": 0.3228321075439453,
+        "max_mismatch_margin": 0.0625
+      },
+      "pressure-b": {
+        "status": "pass",
+        "logits_max_abs_error": 0.75,
+        "logits_rmse": 0.1283406764268875,
+        "logprobs_max_abs_error": 0.5876026153564453,
+        "max_mismatch_margin": 0.125
+      }
+    },
+    "free_blocks": 329
+  },
+  "http": {
+    "url": "http://127.0.0.1:18005",
+    "status": "pass",
+    "concurrency": [
+      {
+        "requests": 1,
+        "elapsed_s": 1.0607372941449285,
+        "near_tie_divergences": []
+      },
+      {
+        "requests": 4,
+        "elapsed_s": 3.4905925560742617,
+        "near_tie_divergences": []
+      },
+      {
+        "requests": 8,
+        "elapsed_s": 6.87306460365653,
+        "near_tie_divergences": []
+      }
+    ],
+    "stream": "pass",
+    "seeded_sampling_n2_penalties": "pass",
+    "echo_prompt_logprobs_and_stop": "pass",
+    "disconnects_and_page_reclamation": "pass"
+  },
+  "tests": {
+    "ksa": 78,
+    "scheduler": 140,
+    "pipeline_parallel_deselected": 5
+  },
+  "source_sha256": {
+    "../install_vllm.sh": "0ab91cf50e97b7ffa2771a24bb644ae4b9e4e1217e77f8a19ae4657c059442da",
+    "benchmarks/ksa/compressed_kv.py": "6d6492302a1c042d7010bb2dd2d27a4b42ee43dcacc36ad24a85d582755c75ce",
+    "benchmarks/ksa/decode.py": "cecc46904fc0f24a25062b616bf858e6915cb368d3326109063ce13d6897f8a3",
+    "benchmarks/ksa/prefill.py": "8cc721e778c7201c92ae890796f39a004c873fc57cbb67b7dcef9536a2338190",
+    "benchmarks/ksa/v1.py": "3eafd6a6326d686434e0616acf785af8bcbfd161ac7c8cec9b094a67e6b8d4bb",
+    "benchmarks/ksa/v1_pressure.py": "9115c47d373a9bbcb6ffc893e1630b49de3c9b6c7ed5ec26212d9b2a9e54dd6b",
+    "benchmarks/ksa/v1_serving.py": "22f70fc91dd19076bb0de9239ed6e162952bd72d5f2a6cf402f7f3501c0ca1e5",
+    "tests/model_executor/test_ksa_prefill.py": "896279ac3ec035feb0ea4ad0278d702d0e7e9b3d4f2036f2c0186d626d1af8cb",
+    "tests/v1/core/test_scheduler.py": "a2068c9080e94198c908eb05b41341b82538adc552d1df70b28f8aeb4a35fd7d",
+    "vllm/config/ksa.py": "259ce78988a4da36d88aff55a8ba0eb2bf1bee7af6d4e985b091464b5d5c2385",
+    "vllm/config/vllm.py": "33b5014a384e9a1374e0274f6862f0baf9ad6a751cccbf5cab6910c97c9ec0c3",
+    "vllm/model_executor/models/ksa.py": "4f79fceff5109b20c9f8fc1370ef41801aa66c1ce8a912bc39859a01dc4d9f2d",
+    "vllm/v1/core/sched/scheduler.py": "1cf6d57d1807f50f32f208715fce1e6fcd2539532673cd72dc8c189b526c78a6",
+    "vllm/v1/engine/input_processor.py": "7ee4d15f4d18a8656acb94c2d52fa62800d4098b3465c1853caaf38a3bdb21ac",
+    "vllm/v1/worker/gpu_worker.py": "b4e458107a3b3cc72492450e84e18c9bbdddb2ce86163d96dafd706bdb4fa0db",
+    "vllm/v1/worker/ksa_gpu_model_runner.py": "eac0f2b71d2cf07cac8177c2fb8db189122dedd0ca989a8694b3a460a6e56b27"
+  },
+  "binary_sha256": {
+    "vllm/_C_stable_libtorch.abi3.so": "42910ea4ca2a837e286737e10f694084dcba39cf9c2775c1f3e5f80912e17f49",
+    "vllm/_moe_C_stable_libtorch.abi3.so": "632a13835c8f151df8892026c206a5597ffc1b7e77085a6e4dd409924f0c3796"
+  }
+}

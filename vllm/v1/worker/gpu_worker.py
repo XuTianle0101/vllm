@@ -409,11 +409,17 @@ class Worker(WorkerBase):
                 self.vllm_config, self.device
             )
         else:
+            from vllm.config.ksa import is_ksa
             from vllm.v1.worker.gpu_model_runner import (
                 GPUModelRunner as GPUModelRunnerV1,
             )
 
-            self.model_runner = GPUModelRunnerV1(self.vllm_config, self.device)
+            if is_ksa(self.vllm_config):
+                from vllm.v1.worker.ksa_gpu_model_runner import KSAGPUModelRunner
+
+                self.model_runner = KSAGPUModelRunner(self.vllm_config, self.device)
+            else:
+                self.model_runner = GPUModelRunnerV1(self.vllm_config, self.device)
 
         if self.rank == 0:
             # If usage stat is enabled, collect relevant info.

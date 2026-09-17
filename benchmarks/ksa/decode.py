@@ -218,6 +218,7 @@ def run(args):
     config = EngineArgs(
         model=str(args.model),
         enforce_eager=True,
+        enable_prefix_caching=False,
         max_model_len=8192,
         dtype="bfloat16",
         compilation_config={"mode": 0, "custom_ops": ["none"]},

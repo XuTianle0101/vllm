@@ -5383,3 +5383,43 @@ def test_async_load_reservation_prevents_wedge_e2e():
     assert b.status == RequestStatus.WAITING
     assert b.num_preemptions == 0
     assert b.request_id not in req_to_blocks
+
+
+@pytest.mark.parametrize("row_budget", [2, 8, 9, 17, 64])
+def test_ksa_summary_rows_share_scheduler_budget(row_budget):
+    """Text accounting stays external while boundary summaries consume compute."""
+    scheduler = create_scheduler(
+        max_num_batched_tokens=row_budget,
+        max_num_seqs=2,
+        max_model_len=128,
+        enable_chunked_prefill=True,
+    )
+    scheduler.is_ksa = True
+    requests = create_requests(num_requests=2, num_tokens=17, max_tokens=4)
+    for request in requests:
+        scheduler.add_request(request)
+    for _ in range(100):
+        starts = {r.request_id: r.num_computed_tokens for r in requests}
+        output = scheduler.schedule()
+        assert output.total_num_scheduled_tokens > 0
+        assert (
+            sum(
+                n + (starts[r] + n) // 8 - starts[r] // 8
+                for r, n in output.num_scheduled_tokens.items()
+            )
+            <= row_budget
+        )
+        req_ids = list(output.num_scheduled_tokens)
+        runner_output = ModelRunnerOutput(
+            req_ids=req_ids,
+            req_id_to_index={r: i for i, r in enumerate(req_ids)},
+            sampled_token_ids=[[100] for _ in req_ids],
+            logprobs=None,
+            prompt_logprobs_dict={},
+            pooler_output=[],
+        )
+        scheduler.update_from_output(output, runner_output)
+        if not scheduler.has_unfinished_requests():
+            break
+    assert not scheduler.has_unfinished_requests()
+    assert all(len(r.output_token_ids) == 4 for r in requests)

@@ -1,5 +1,7 @@
 # T04：批处理、分块预填充和基础服务
 
+以下记录原 T04 专用入口；后续通用框架接入见 [V1 运行说明](v1-serving.md)。
+
 本轮实现为 TP=PP=1、BF16、eager Python 路径，复用 T03 的
 `KVCacheManager` 和文本/summary 两组压缩页。入口是
 `vllm.entrypoints.ksa`，不是通用 `vllm serve` / `LLM`。

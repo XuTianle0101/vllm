@@ -466,6 +466,16 @@ class InputProcessor:
                             f"by setting --limit-mm-per-prompt at startup."
                         )
 
+        if (
+            prompt_ids
+            and getattr(model_config.hf_config, "use_summary_attention", False)
+            and any(
+                token < 0 or token >= model_config.hf_config.summary_token_begin
+                for token in prompt_ids
+            )
+        ):
+            raise ValueError("KSA prompts must contain text token IDs only")
+
         if prompt_ids and tokenizer is not None:
             max_input_id = max(prompt_ids, default=0)
 

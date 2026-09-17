@@ -30,6 +30,7 @@ class KSAForCausalLM(Qwen3ForCausalLM):
         super().__init__(vllm_config=vllm_config, prefix=prefix)
         self.text_row_indices = None
         self.reference_attention = False
+        self.return_full_vocab_logits = False
         self.layer_observer = None
         limit = getattr(config, "truncate_predict_nums", config.summary_token_begin)
         self.text_vocab_size = min(
@@ -70,8 +71,8 @@ class KSAForCausalLM(Qwen3ForCausalLM):
 
         if is_forward_context_available():
             raise RuntimeError(
-                "KSA requires the KSA eager runner; the generic GPUModelRunner, "
-                "prefix caching, speculative decode and graphs are unsupported"
+                "KSA requires KSAGPUModelRunner or the standalone eager runner; "
+                "dense attention metadata cannot represent summary attention"
             )
         start = cache.text_tokens if cache is not None else 0
         if (
@@ -117,7 +118,7 @@ class KSAForCausalLM(Qwen3ForCausalLM):
             ):
                 raise ValueError("text input contains a reserved summary token")
             ids = positions.new_full(pos.shape, self.config.summary_token_begin)
-            ids[rows] = input_ids
+            ids[rows] = input_ids.to(ids.dtype)
             hidden = self.embed_input_ids(ids)
         else:
             if inputs_embeds.shape != (positions.numel(), self.config.hidden_size):
@@ -296,6 +297,9 @@ class KSAForCausalLM(Qwen3ForCausalLM):
 
     def compute_logits(self, hidden_states):
         logits = super().compute_logits(hidden_states)
+        if self.return_full_vocab_logits:
+            logits[..., self.text_vocab_size :] = -float("inf")
+            return logits
         return logits[..., : self.text_vocab_size]
 
     def load_weights(self, weights):

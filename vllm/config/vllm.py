@@ -552,6 +552,11 @@ class VllmConfig:
         if use_v2_model_runner is not None:
             return use_v2_model_runner
 
+        from vllm.config.ksa import is_ksa
+
+        if is_ksa(self):
+            return False
+
         # DSpark is implemented only by the V2 GPU model runner, and DeepSeek-V4
         # is not otherwise a default-V2 architecture, so force V2 for it. If V2
         # is unsupported for the rest of the config, _validate_v2_model_runner
@@ -935,6 +940,11 @@ class VllmConfig:
 
     def __post_init__(self):
         """Verify configs are valid & consistent with each other."""
+
+        from vllm.config.ksa import configure_ksa, is_ksa
+
+        if is_ksa(self):
+            configure_ksa(self)
 
         # To give each torch profile run a unique instance name.
         self.instance_id = f"{time.time_ns()}"

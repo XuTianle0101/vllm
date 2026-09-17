@@ -159,8 +159,10 @@ def tiny_model(tmp_path):
     import json
 
     from vllm.config import (
+        CacheConfig,
         CompilationConfig,
         ModelConfig,
+        SchedulerConfig,
         VllmConfig,
         set_current_vllm_config,
     )
@@ -197,6 +199,10 @@ def tiny_model(tmp_path):
             skip_tokenizer_init=True,
             dtype="float32",
             enforce_eager=True,
+        ),
+        cache_config=CacheConfig(enable_prefix_caching=False),
+        scheduler_config=SchedulerConfig(
+            enable_chunked_prefill=True, max_model_len=2048, is_encoder_decoder=False
         ),
         compilation_config=CompilationConfig(mode=0, custom_ops=["none"]),
     )
@@ -245,8 +251,16 @@ def test_model_initialization_loader_and_text_only_forward(tiny_model):
             None, torch.arange(17), inputs_embeds=model.embed_input_ids(ids)
         )
         torch.testing.assert_close(embedded, expected)
+        torch.testing.assert_close(model(ids.int(), torch.arange(17)), expected)
         assert expected.shape == (17, 32)
-        assert model.compute_logits(expected).shape == (17, 63)
+        text_logits = model.compute_logits(expected)
+        assert text_logits.shape == (17, 63)
+        model.return_full_vocab_logits = True
+        full_logits = model.compute_logits(expected)
+        assert full_logits.shape == (17, 64)
+        assert torch.isneginf(full_logits[:, 63]).all()
+        torch.testing.assert_close(full_logits[:, :63], text_logits)
+        model.return_full_vocab_logits = False
         assert model.text_row_indices.tolist() == list(range(8)) + list(
             range(9, 17)
         ) + [18]
@@ -810,3 +824,97 @@ def test_batched_eos_and_workspace_oom_release_requests(tiny_model, monkeypatch)
         runner.pool.manager.block_pool.get_num_free_blocks()
         == runner.pool.config.num_blocks - 1
     )
+
+
+@pytest.mark.parametrize("chunk", [1, 7, 8, 17, 65])
+def test_v1_scheduler_pages_match_reference_across_eviction(tiny_model, chunk):
+    """Native allocation happens before attention, including shared page reuse."""
+    from vllm.config import get_current_vllm_config
+    from vllm.model_executor.models.ksa_decode import KSACache
+    from vllm.sampling_params import SamplingParams
+    from vllm.v1.core.kv_cache_manager import KVCacheManager
+    from vllm.v1.core.kv_cache_utils import (
+        get_kv_cache_config_from_groups,
+        get_kv_cache_groups,
+    )
+    from vllm.v1.request import Request
+    from vllm.v1.worker.ksa_gpu_model_runner import (
+        KSASchedulerPagePool,
+        ksa_cache_specs,
+    )
+
+    model = tiny_model
+    config = get_current_vllm_config()
+    specs = ksa_cache_specs(model.windows, 1, 16, torch.float32)
+    groups = get_kv_cache_groups(config, specs)
+    kv_config = get_kv_cache_config_from_groups(config, groups, 1024 * 1024)
+    pool = KSASchedulerPagePool(kv_config, model.windows, "cpu")
+    manager = KVCacheManager(
+        kv_config,
+        max_model_len=2048,
+        scheduler_block_size=64,
+        hash_block_size=8,
+        enable_caching=False,
+    )
+    ids = [torch.arange(145) % 63, (torch.arange(129) + 9) % 63]
+    requests = [
+        Request(str(i), tokens.tolist(), SamplingParams(max_tokens=1), None)
+        for i, tokens in enumerate(ids)
+    ]
+    caches = [KSACache(page_pool=pool, request=req) for req in requests]
+    with torch.inference_mode():
+        expected = [model(tokens, torch.arange(len(tokens))) for tokens in ids]
+        starts = [0, 0]
+        step = 0
+        while any(start < len(tokens) for start, tokens in zip(starts, ids)):
+            batch, selected = [], []
+            for i in [0, 1] if step % 2 else [1, 0]:
+                start = starts[i]
+                end = min(len(ids[i]), start + chunk + i)
+                if start == end:
+                    continue
+                req = requests[i]
+                assert (
+                    manager.allocate_slots(req, num_new_tokens=end - start) is not None
+                )
+                pool.tables[req.request_id] = manager.get_blocks(
+                    req.request_id
+                ).get_block_ids()
+                batch.append((ids[i][start:end], torch.arange(start, end), caches[i]))
+                selected.append((i, start, end))
+            outputs = model.forward_batch(batch)
+            for (i, start, end), output in zip(selected, outputs):
+                torch.testing.assert_close(
+                    output, expected[i][start:end], atol=1e-6, rtol=1e-5
+                )
+                starts[i] = end
+            step += 1
+    for req, cache in zip(requests, caches):
+        cache.clear()
+        manager.free(req)
+    assert not pool.read_slots
+    assert not pool.tables
+    assert manager.block_pool.get_num_free_blocks() == kv_config.num_blocks - 1
+
+
+def test_v1_configuration_rejects_unsupported_execution(tiny_model, monkeypatch):
+    from vllm.config import get_current_vllm_config
+    from vllm.config.ksa import configure_ksa
+
+    config = get_current_vllm_config()
+    for obj, field, value, message in (
+        (config.cache_config, "enable_prefix_caching", True, "prefix-caching"),
+        (config.scheduler_config, "async_scheduling", True, "async scheduling"),
+        (config.scheduler_config, "disable_hybrid_kv_cache_manager", True, "hybrid"),
+        (config.scheduler_config, "max_num_scheduled_tokens", 0, "row budget"),
+        (config.model_config, "max_model_len", 8193, "8192"),
+        (config.model_config, "enforce_eager", False, "enforce-eager"),
+    ):
+        with monkeypatch.context() as patch:
+            patch.setattr(obj, field, value)
+            with pytest.raises(ValueError, match=message):
+                configure_ksa(config)
+    with monkeypatch.context() as patch:
+        patch.setenv("VLLM_USE_V2_MODEL_RUNNER", "1")
+        with pytest.raises(ValueError, match="V2 model runner"):
+            configure_ksa(config)
