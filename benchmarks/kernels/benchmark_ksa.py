@@ -4,6 +4,7 @@
 
 import argparse
 import json
+import time
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -21,18 +22,33 @@ def measure(fn):
     for _ in range(3):
         fn()
     torch.accelerator.synchronize()
-    result = []
-    for _ in range(5):
-        start, end = (
-            torch.cuda.Event(enable_timing=True),
-            torch.cuda.Event(enable_timing=True),
-        )
-        start.record()
+    graph = torch.cuda.CUDAGraph()
+    with torch.cuda.graph(graph):
         for _ in range(10):
             fn()
+    result = []
+    for _ in range(5):
+        start = torch.cuda.Event(enable_timing=True)
+        end = torch.cuda.Event(enable_timing=True)
+        start.record()
+        graph.replay()
         end.record()
         end.synchronize()
         result.append(start.elapsed_time(end) / 10)
+    return result
+
+
+def measure_metadata(fn):
+    for _ in range(3):
+        fn()
+    torch.accelerator.synchronize()
+    result = []
+    for _ in range(5):
+        begin = time.perf_counter()
+        for _ in range(10):
+            fn()
+        torch.accelerator.synchronize()
+        result.append((time.perf_counter() - begin) * 100)
     return result
 
 
@@ -103,7 +119,7 @@ def run(length, batch, phase, window):
         reference_attention_ms=measure(reference),
         reference_gather_ms=measure(gather),
         reference_with_gather_ms=measure(lambda: reference(gather())),
-        metadata_ms=measure(lambda: metadata.stage(states)),
+        metadata_wall_ms=measure_metadata(lambda: metadata.stage(states)),
     )
 
 
@@ -122,6 +138,7 @@ def main():
                     args.output.write_text(
                         json.dumps(
                             dict(
+                                timing="graph events; metadata wall clock",
                                 gpu=torch.cuda.get_device_name(),
                                 torch=torch.__version__,
                                 timings=rows,
