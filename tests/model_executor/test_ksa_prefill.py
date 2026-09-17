@@ -400,3 +400,189 @@ def test_generation_stops_counts_and_filters_summary_rows(tiny_model, monkeypatc
             tiny_model(ids[:1], torch.tensor([8]), cache=cache)
         assert cache.layers is old_layers and cache.layouts is old_layouts
         assert cache.text_tokens == 8
+
+
+@pytest.mark.parametrize("length", [7, 8, 9, 63, 64, 65, 1031, 1032])
+@pytest.mark.parametrize("batch_writes", [False, True])
+def test_paged_cache_matches_tensor_cache_and_recycles(
+    tiny_model, length, batch_writes
+):
+    """Real block tables must preserve KV across partial pages and eviction."""
+    from vllm.model_executor.models.ksa_decode import KSACache
+
+    ids = torch.arange(length + 9) % 63
+    pool_cache = tiny_model.new_cache()
+    pool = pool_cache.page_pool
+    pool.batch_writes = batch_writes
+    free = pool.manager.block_pool.get_num_free_blocks()
+    with torch.inference_mode():
+        for _ in range(2):
+            tensor_cache = KSACache()
+            for start, end in [(0, length)] + [
+                (n, n + 1) for n in range(length, length + 9)
+            ]:
+                positions = torch.arange(start, end)
+                expected = tiny_model(ids[start:end], positions, cache=tensor_cache)
+                actual = tiny_model(ids[start:end], positions, cache=pool_cache)
+                torch.testing.assert_close(actual, expected, atol=2e-6, rtol=1e-5)
+                for layer, window in enumerate(tiny_model.windows):
+                    stored = pool.read(
+                        pool_cache.request, layer, pool_cache.layouts[window]
+                    )
+                    for a, b in zip(stored, tensor_cache.layers[layer]):
+                        torch.testing.assert_close(a, b, atol=2e-6, rtol=1e-5)
+                usage = pool.occupancy(pool_cache.request, end)
+                assert usage["effective_kv_bytes"] <= usage["allocated_kv_bytes"]
+                assert usage["allocated_kv_bytes"] < usage["pool_bytes"]
+            # Different groups and decode allocations interleave the page IDs.
+            tables = pool.manager.get_blocks(
+                pool_cache.request.request_id
+            ).get_block_ids()
+            assert any(
+                any(b != a + 1 for a, b in zip(t, t[1:]) if a and b) for t in tables
+            )
+            pool_cache.clear()
+            pool_cache.clear()
+            assert pool.manager.block_pool.get_num_free_blocks() == free
+
+
+def test_paged_failure_keeps_committed_cache_and_cancel_frees_all(
+    tiny_model, monkeypatch
+):
+    """Layer exceptions and admission failure must leave a usable old prefix."""
+    cache = tiny_model.new_cache()
+    pool = cache.page_pool
+    free = pool.manager.block_pool.get_num_free_blocks()
+    with torch.inference_mode():
+        tiny_model(torch.arange(7), torch.arange(7), cache=cache)
+        before = [
+            pool.read(cache.request, i, cache.layouts[w])
+            for i, w in enumerate(tiny_model.windows)
+        ]
+        original = tiny_model.model.layers[-1].mlp.forward
+
+        def fail(*args, **kwargs):
+            raise RuntimeError("injected page failure")
+
+        monkeypatch.setattr(tiny_model.model.layers[-1].mlp, "forward", fail)
+        with pytest.raises(RuntimeError, match="injected"):
+            tiny_model(torch.tensor([7]), torch.tensor([7]), cache=cache)
+        monkeypatch.setattr(tiny_model.model.layers[-1].mlp, "forward", original)
+        assert cache.text_tokens == cache.request.num_computed_tokens == 7
+        for i, w in enumerate(tiny_model.windows):
+            for a, b in zip(before[i], pool.read(cache.request, i, cache.layouts[w])):
+                torch.testing.assert_close(a, b, rtol=0, atol=0)
+        # Exhaust the real allocator; the failed next-page admission must not
+        # evict text that is still part of the committed prefix.
+        held = pool.manager.block_pool.get_new_blocks(
+            pool.manager.block_pool.get_num_free_blocks()
+        )
+        tiny_model(torch.tensor([7]), torch.tensor([7]), cache=cache)
+        with pytest.raises(MemoryError, match="exhausted"):
+            tiny_model(torch.tensor([8]), torch.tensor([8]), cache=cache)
+        assert cache.text_tokens == cache.request.num_computed_tokens == 8
+        pool.manager.block_pool.free_blocks(held)
+        tiny_model(torch.tensor([8]), torch.tensor([8]), cache=cache)
+        cache.clear()  # Same lifecycle used by cancellation and runner finally.
+        assert pool.manager.block_pool.get_num_free_blocks() == free
+
+
+def test_paged_pool_growth_capacity_and_interleaved_requests():
+    """Bound real pages through 8K, keep local summaries, and isolate owners."""
+    from vllm.model_executor.models.ksa_cache import KSAPagePool
+    from vllm.model_executor.models.ksa_decode import cached_layout, retained_layout
+
+    pool = KSAPagePool([128, 16768], 1, 1, torch.float32, "cpu", 8192, num_blocks=1420)
+    a, b = pool.new_request(), pool.new_request()
+    free = pool.manager.block_pool.get_num_free_blocks()
+    previous: dict[tuple[str, int], tuple[torch.Tensor, torch.Tensor]] = {}
+    for request, start, end in [
+        (b, 0, 9),
+        (a, 0, 1024),
+        (a, 0, 4096),
+        (a, 0, 8192),
+    ]:
+        positions, _, summary = cached_layout(start, end - start)
+        values = (
+            positions.float() + summary.float() / 2 + int(request.request_id) * 10000
+        )
+        pending = [(values[:, None, None], -values[:, None, None])] * 2
+        retained = {}
+        for w in pool.windows:
+            old_pos, old_summary = previous.get(
+                (request.request_id, w), (positions[:0], summary[:0])
+            )
+            pos = torch.cat((old_pos, positions))
+            summ = torch.cat((old_summary, summary))
+            retained[w] = summ | (pos // 8 >= max(0, end // 8 - w))
+            previous[request.request_id, w] = (pos[retained[w]], summ[retained[w]])
+        pending = [
+            (k[retained[w]], v[retained[w]]) for w, (k, v) in zip(pool.windows, pending)
+        ]
+        pool.commit(request, end, pending, retained)
+        usage = pool.occupancy(request, end)
+        assert usage["group_pages"][0] <= 129
+        assert usage["group_pages"][1] == (end + 63) // 64
+        assert usage["group_pages"][2] == (end + 7) // 8
+        for layer, w in enumerate(pool.windows):
+            pos, summ, _ = retained_layout(end, w)
+            expected = pos.float() + summ.float() / 2 + int(request.request_id) * 10000
+            k, v = pool.read(request, layer, (pos, summ))
+            torch.testing.assert_close(k[:, 0, 0], expected, rtol=0, atol=0)
+            torch.testing.assert_close(v[:, 0, 0], -expected, rtol=0, atol=0)
+        if request is a:
+            pool.free(a)
+            for w in pool.windows:
+                previous.pop((a.request_id, w))
+    # The small request survives all allocations/evictions of the other one.
+    pos, _, summ = cached_layout(0, 9)
+    k, _ = pool.read(b, 0, (pos, summ))
+    torch.testing.assert_close(k[:, 0, 0], pos.float() + summ.float() / 2 + 10000)
+    pool.free(a)
+    pool.free(b)
+    assert pool.manager.block_pool.get_num_free_blocks() == free
+    assert not pool.read_slots
+    specs = [g.kv_cache_spec for g in pool.config.kv_cache_groups]
+    assert len({s.page_size_bytes for s in specs}) == 1
+    config = SimpleNamespace(
+        model_config=SimpleNamespace(max_model_len=8192),
+        parallel_config=SimpleNamespace(decode_context_parallel_size=1),
+    )
+    assert specs[1].max_memory_usage_bytes(config) == 1024 * 2 * 4
+    assert specs[1].storage_block_size == 8
+
+
+def test_paged_uncompacted_prefill_and_write_failure_cleanup(tiny_model, monkeypatch):
+    """The comparison switch agrees, and a partial commit invalidates all pages."""
+    from vllm.model_executor.models.ksa_decode import KSAPythonRunner
+
+    cache = tiny_model.new_cache()
+    pool = cache.page_pool
+    free = pool.manager.block_pool.get_num_free_blocks()
+    ids = torch.arange(17)
+    with torch.inference_mode():
+        expected = tiny_model(ids, torch.arange(17))
+        for batched in (False, True):
+            pool.batch_writes = batched
+            pool.compact_prefill = False
+            actual = tiny_model(ids, torch.arange(17), cache=cache)
+            torch.testing.assert_close(actual, expected)
+            cache.clear()
+        pool.compact_prefill = pool.batch_writes = True
+        tiny_model(ids[:7], torch.arange(7), cache=cache)
+        commit = pool.commit
+
+        def fail_commit(request, end, pending, retained):
+            k, v = pending[-1]
+            pending[-1] = (k[:0], v[:0])
+            return commit(request, end, pending, retained)
+
+        monkeypatch.setattr(pool, "commit", fail_commit)
+        with pytest.raises((IndexError, RuntimeError)):
+            tiny_model(ids[7:8], torch.tensor([7]), cache=cache)
+        assert cache.text_tokens == 0 and cache.layouts == {}
+        assert pool.manager.block_pool.get_num_free_blocks() == free
+        # The runner's finally also releases a failed request automatically.
+        with pytest.raises((IndexError, RuntimeError)):
+            KSAPythonRunner(tiny_model).generate(ids[:7], max_tokens=2)
+        assert pool.manager.block_pool.get_num_free_blocks() == free

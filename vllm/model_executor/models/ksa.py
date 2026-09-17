@@ -37,6 +37,22 @@ class KSAForCausalLM(Qwen3ForCausalLM):
             config.summary_token_begin,
         )
 
+    def new_cache(self):
+        from .ksa_cache import KSAPagePool
+
+        if not hasattr(self, "page_pool"):
+            attn = self.model.layers[0].self_attn
+            parameter = next(self.parameters())
+            self.page_pool = KSAPagePool(
+                self.windows,
+                attn.num_kv_heads,
+                attn.head_dim,
+                parameter.dtype,
+                parameter.device,
+                min(MAX_CACHED_TEXT_TOKENS, self.config.max_position_embeddings),
+            )
+        return KSACache(page_pool=self.page_pool, request=self.page_pool.new_request())
+
     def forward(
         self,
         input_ids,
@@ -78,7 +94,7 @@ class KSAForCausalLM(Qwen3ForCausalLM):
         if end > min(MAX_CACHED_TEXT_TOKENS, self.config.max_position_embeddings):
             raise ValueError("T02 cache exceeds maximum text length")
         if start:
-            if len(cache.layers) != len(self.model.layers):
+            if cache.page_pool is None and len(cache.layers) != len(self.model.layers):
                 raise ValueError("incomplete KSA layer cache")
             if cache.layouts.keys() != set(self.windows):
                 raise ValueError("incomplete KSA cache layouts")
@@ -157,15 +173,31 @@ class KSAForCausalLM(Qwen3ForCausalLM):
             q, k = attn.rotary_emb(pos, q.flatten(1), k.flatten(1))
             k = k.reshape(-1, attn.num_kv_heads, attn.head_dim)
             v = v.reshape(-1, attn.num_kv_heads, attn.head_dim)
+            if cache is not None and cache.page_pool is not None:
+                if start or not cache.page_pool.compact_prefill:
+                    pending.append((k, v))
+                else:
+                    keep = retained[self.windows[index]]
+                    # The value view otherwise keeps the full QKV projection
+                    # alive until all layers have completed their forward pass.
+                    pending.append(
+                        (k, v.clone()) if keep is None else (k[keep], v[keep])
+                    )
             if start:
-                old_k, old_v = cache.layers[index]
+                old_k, old_v = (
+                    cache.layers[index]
+                    if cache.page_pool is None
+                    else cache.page_pool.read(
+                        cache.request, index, cache.layouts[self.windows[index]]
+                    )
+                )
                 if (
                     old_k.shape[0] != old_lengths[self.windows[index]]
                     or old_v.shape != old_k.shape
                 ):
                     raise ValueError("KSA cache row count does not match text count")
                 k, v = torch.cat((old_k, k)), torch.cat((old_v, v))
-            if cache is not None:
+            if cache is not None and cache.page_pool is None:
                 keep = retained[self.windows[index]]
                 pending.append((k, v) if keep is None else (k[keep], v[keep]))
             mask = masks[self.windows[index]]
@@ -183,7 +215,15 @@ class KSAForCausalLM(Qwen3ForCausalLM):
                 self.layer_observer(index, hidden + residual, rows, summary)
         hidden, _ = self.model.norm(hidden, residual)
         if cache is not None:
-            cache.layers = pending
+            if cache.page_pool is not None:
+                try:
+                    cache.page_pool.commit(cache.request, end, pending, retained)
+                except BaseException:
+                    if cache.request.num_computed_tokens != start:
+                        cache.clear()
+                    raise
+            else:
+                cache.layers = pending
             cache.layouts = pending_layouts
             cache.text_tokens = end
             cache.owner = self

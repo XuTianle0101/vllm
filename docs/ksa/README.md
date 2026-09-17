@@ -1,7 +1,8 @@
 # KSA vLLM 适配文档
 
-当前状态：**T00 基线已冻结，T01 prefill 与 T02 单请求缓存 decode 已通过 A100 验收。**
+当前状态：**T00 基线已冻结，T01 prefill、T02 单请求 decode 与 T03 分页压缩缓存已通过 A100 验收。**
 
+- [T03 分页缓存与验收](t03-compressed-kv.md)：真实页分配、压缩占用、独立性能对照与限制。
 - [T02 运行与验收](t02-decode.md)：Python 缓存生成、精度与性能对照、当前限制。
 - [总计划](ksa-vllm-plan.md)：目标、约束、语义、精度与性能门禁。
 - [Ticket 看板](tickets/README.md)：T00–T07 的顺序与状态。

@@ -123,12 +123,12 @@ def teacher_vllm(model, ids, continuation):
         cache.clear()
 
 
-def timed_vllm(model, ids):
+def timed_vllm(model, ids, *, cache_factory=None):
     import torch
 
     from vllm.model_executor.models.ksa_decode import KSACache
 
-    cache = KSACache()
+    cache = KSACache() if cache_factory is None else cache_factory()
     times, boundary = [], []
     tokens = ids
     torch.accelerator.synchronize()
@@ -420,13 +420,19 @@ def run(args):
         f"SHA: {args.expected_sha}",
         f"Baseline: {BASELINE_ID}; tolerance: {TOLERANCE_ID}",
         "",
-        "BF16, batch=1, 128 output tokens, EOS disabled for timing; "
-        "one warmup and five repetitions.",
-        "Generation comparisons use the frozen T00 margin <= 0.5 rule "
-        "under identical prefixes; exact IDs are separately reported.",
+        (
+            "BF16, batch=1, 128 output tokens, EOS disabled for timing; "
+            "one warmup and five repetitions."
+        ),
+        (
+            "Generation comparisons use the frozen T00 margin <= 0.5 rule "
+            "under identical prefixes; exact IDs are separately reported."
+        ),
         "",
-        "| Backend | Prompt | TTFT ms | Steady TPOT ms | "
-        "Boundary TPOT ms | Tokens/s | Peak GiB |",
+        (
+            "| Backend | Prompt | TTFT ms | Steady TPOT ms | "
+            "Boundary TPOT ms | Tokens/s | Peak GiB |"
+        ),
         "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for backend in ("HF", "vLLM"):
@@ -454,10 +460,15 @@ def run(args):
             )
     lines += [
         "",
-        "Full-history Python KV and dense prefill; no serving, concurrency, "
-        "graphs, paging, or long-context performance claim.",
-        "TTFT includes prefill and argmax; TPOT includes preparation, forward, "
-        "argmax and device synchronization. Load/compile is outside warm measurements.",
+        (
+            "Full-history Python KV and dense prefill; no serving, concurrency, "
+            "graphs, paging, or long-context performance claim."
+        ),
+        (
+            "TTFT includes prefill and argmax; TPOT includes preparation, forward, "
+            "argmax and device synchronization. "
+            "Load/compile is outside warm measurements."
+        ),
     ]
     (args.output / "summary.md").write_text("\n".join(lines) + "\n")
     if not passed:

@@ -17,12 +17,16 @@ class KSACache:
     layers: list[tuple[torch.Tensor, torch.Tensor]] = field(default_factory=list)
     layouts: dict[int, tuple[torch.Tensor, torch.Tensor]] = field(default_factory=dict)
     owner: object | None = None
+    page_pool: object | None = None
+    request: object | None = None
 
     @property
     def internal_rows(self):
         return self.text_tokens + self.text_tokens // 8
 
     def clear(self):
+        if self.page_pool is not None and self.request is not None:
+            self.page_pool.free(self.request)
         self.text_tokens = 0
         self.layers.clear()
         self.layouts.clear()
@@ -79,8 +83,9 @@ class KSAPythonRunner:
     never enter token_ids or either usage count.
     """
 
-    def __init__(self, model):
+    def __init__(self, model, *, paged=True):
         self.model = model
+        self.paged = paged
 
     @torch.inference_mode()
     def generate(self, input_ids, *, max_tokens, eos_token_ids=(), ignore_eos=False):
@@ -105,7 +110,7 @@ class KSAPythonRunner:
         output = KSAGenerationOutput([], input_ids.numel(), "length")
         if max_tokens == 0:
             return output
-        cache = KSACache()
+        cache = self.model.new_cache() if self.paged else KSACache()
         tokens = input_ids
         try:
             for _ in range(max_tokens):
