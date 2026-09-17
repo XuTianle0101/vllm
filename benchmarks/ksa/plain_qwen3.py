@@ -70,6 +70,7 @@ def run(args):
             enforce_eager=True,
             enable_prefix_caching=False,
             gpu_memory_utilization=0.2,
+            max_logprobs=256,
         )
         try:
             runtime = llm.collective_rpc(inspect_worker)[0]
