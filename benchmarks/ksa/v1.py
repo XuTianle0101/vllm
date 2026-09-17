@@ -82,7 +82,10 @@ def run(args):
         if file_hash(args.model / name) != expected:
             raise ValueError(f"Model hash mismatch: {name}")
     cases = {
-        name: case for name, case in inputs.items() if len(case["input_ids"]) <= 4096
+        name: case
+        for name, case in inputs.items()
+        if len(case["input_ids"]) + len(case["teacher_ids"]) < args.max_model_len
+        and (args.all_cases or len(case["input_ids"]) <= 4096)
     }
     prompts = [
         {"prompt_token_ids": c["input_ids"] + c["teacher_ids"]} for c in cases.values()
@@ -91,7 +94,7 @@ def run(args):
         model=str(args.model),
         enforce_eager=True,
         enable_prefix_caching=False,
-        max_model_len=8192,
+        max_model_len=args.max_model_len,
         max_num_seqs=8,
         max_num_batched_tokens=args.row_budget,
         gpu_memory_utilization=0.5,
@@ -160,4 +163,6 @@ if __name__ == "__main__":
     parser.add_argument("--baseline", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--row-budget", type=int, default=257)
+    parser.add_argument("--max-model-len", type=int, default=8192)
+    parser.add_argument("--all-cases", action="store_true")
     run(parser.parse_args())

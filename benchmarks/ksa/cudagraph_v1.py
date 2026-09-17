@@ -72,25 +72,29 @@ def run(args):
     args.output.mkdir(parents=True, exist_ok=False)
     baseline, _, inputs = validate(args)
     names = ["length-7", "length-8", "length-1023", "length-1024"]
+    if args.all_cases:
+        names = list(inputs)
     prompts = [{"prompt_token_ids": inputs[n]["input_ids"]} for n in names]
     llm = LLM(
         model=str(args.model),
         enforce_eager=True,
         enable_prefix_caching=False,
-        max_model_len=8192,
+        max_model_len=131072 if args.all_cases else 8192,
         max_num_seqs=4,
-        max_num_batched_tokens=257,
+        max_num_batched_tokens=4096 if args.all_cases else 257,
         gpu_memory_utilization=0.5,
         compilation_config={"mode": 0, "custom_ops": ["none"]},
         additional_config={"ksa_cudagraph": True},
     )
-    results, captures, runtime = [], [], []
+    results, captures, runtime, retrieval = [], [], [], []
     try:
         for repeat, mode in enumerate(("eager", "graph", "graph")):
             if args.compare_t05:
                 llm.collective_rpc(set_attention, args=(mode != "eager",))
             llm.collective_rpc(set_mode, args=(mode,))
-            order = list(range(4)) if repeat % 2 == 0 else list(reversed(range(4)))
+            order = list(range(len(prompts)))
+            if repeat % 2:
+                order.reverse()
             outputs = llm.generate(
                 [prompts[i] for i in order],
                 SamplingParams(temperature=0, max_tokens=32, ignore_eos=True),
@@ -98,6 +102,19 @@ def run(args):
             results.append(
                 {i: list(out.outputs[0].token_ids) for i, out in zip(order, outputs)}
             )
+            for i, out in zip(order, outputs):
+                answer = inputs[names[i]].get("expected_answer")
+                if answer is not None:
+                    retrieval.append(
+                        dict(
+                            case=names[i],
+                            mode=mode,
+                            repeat=repeat,
+                            text=out.outputs[0].text,
+                            expected_answer=answer,
+                            status="pass" if answer in out.outputs[0].text else "fail",
+                        )
+                    )
             path = (args.output / f"{mode}-{repeat}.pt").resolve()
             runtime.append(llm.collective_rpc(export, args=(str(path),))[0])
             captures.append(torch.load(path, weights_only=True))
@@ -128,6 +145,7 @@ def run(args):
             "pass"
             if (
                 all(r["status"] == "pass" for r in rows)
+                and all(r["status"] == "pass" for r in retrieval)
                 and runtime[2]["replays"] > runtime[1]["replays"] > 0
             )
             else "fail"
@@ -141,6 +159,7 @@ def run(args):
                 cases=rows,
                 runtime=runtime,
                 generations=results,
+                retrieval=retrieval,
             ),
         )
         if status != "pass":
@@ -185,6 +204,7 @@ if __name__ == "__main__":
     parser.add_argument("--baseline", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--expected-sha", required=True)
+    parser.add_argument("--all-cases", action="store_true")
     parser.add_argument(
         "--compare-t05",
         action="store_true",

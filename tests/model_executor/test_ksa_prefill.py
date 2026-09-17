@@ -332,7 +332,7 @@ def test_retained_kv_growth_and_release():
     """Window text is bounded while summary storage grows one row per block."""
     from vllm.model_executor.models.ksa_decode import KSACache, retained_layout
 
-    for length in (1023, 1024, 1025, 1032, 4096, 8192):
+    for length in (1023, 1024, 1025, 1032, 4096, 8192, 65536, 131072):
         for window in (0, 1, 128, 16768):
             positions, summary, _ = retained_layout(length, window)
             expected_text = min(length, (window + 1) * 8 + length % 8)
@@ -907,7 +907,7 @@ def test_v1_configuration_rejects_unsupported_execution(tiny_model, monkeypatch)
         (config.scheduler_config, "async_scheduling", True, "async scheduling"),
         (config.scheduler_config, "disable_hybrid_kv_cache_manager", True, "hybrid"),
         (config.scheduler_config, "max_num_scheduled_tokens", 0, "row budget"),
-        (config.model_config, "max_model_len", 8193, "8192"),
+        (config.model_config, "max_model_len", 131073, "131072"),
         (config.model_config, "enforce_eager", False, "enforce-eager"),
     ):
         with monkeypatch.context() as patch:

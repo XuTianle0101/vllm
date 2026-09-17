@@ -51,7 +51,7 @@ def configure_ksa(config) -> None:
         "non-auto KV dtype": config.cache_config.cache_dtype != "auto",
         "prompt embeddings": model.enable_prompt_embeds,
         "pooling": model.runner_type != "generate",
-        "max_model_len > 8192": model.max_model_len > 8192,
+        "max_model_len > 131072": model.max_model_len > 131072,
         "row budget < 2": row_budget < 2,
         "scheduled budget exceeds worker capacity": (
             row_budget > scheduler.max_num_batched_tokens

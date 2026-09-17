@@ -227,5 +227,41 @@ class BaselineContractTest(unittest.TestCase):
             self.assertFalse(path.with_suffix(".json.tmp").exists())
 
 
+class FinalValidationContractTest(unittest.TestCase):
+    def test_final_decode_gate_rejects_missing_or_contaminated_measurements(self):
+        """A summary must not accept partial matrices or timing with graph capture."""
+        from final_validation import summarize
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_json(root / "processes.json", [])
+            self.assertEqual(summarize(root)["decode_gate"], "fail")
+            for length in (16384, 32768, 65536):
+                for rep in range(5):
+                    target = root / f"hf-{length}" / "outputs"
+                    target.mkdir(parents=True, exist_ok=True)
+                    write_json(
+                        target / f"timing-{length}-{rep}.json",
+                        dict(decode_ms=[10, 12], ttft_ms=20),
+                    )
+                target = root / f"graph-{length}-1"
+                target.mkdir()
+                write_json(
+                    target / "timing.json",
+                    [
+                        dict(
+                            repetition=rep, status="pass", mean_decode_ms=5, ttft_ms=30
+                        )
+                        for rep in range(5)
+                    ],
+                )
+            self.assertEqual(summarize(root)["decode_gate"], "pass")
+            target = root / "graph-32768-1" / "timing.json"
+            rows = json.loads(target.read_text())
+            rows[0]["status"] = "capture_contaminated"
+            write_json(target, rows)
+            self.assertEqual(summarize(root)["decode_gate"], "fail")
+
+
 if __name__ == "__main__":
     unittest.main()

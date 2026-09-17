@@ -20,6 +20,11 @@ class KSAForCausalLM(Qwen3ForCausalLM):
 
     def __init__(self, *, vllm_config, prefix: str = ""):
         config = vllm_config.model_config.hf_config
+        self.max_cached_text_tokens = min(
+            MAX_CACHED_TEXT_TOKENS,
+            config.max_position_embeddings,
+            vllm_config.model_config.max_model_len,
+        )
         self.windows = validate_ksa_config(config, config.num_hidden_layers)
         if (
             vllm_config.parallel_config.pipeline_parallel_size != 1
@@ -52,7 +57,7 @@ class KSAForCausalLM(Qwen3ForCausalLM):
                 attn.head_dim,
                 parameter.dtype,
                 parameter.device,
-                min(MAX_CACHED_TEXT_TOKENS, self.config.max_position_embeddings),
+                self.max_cached_text_tokens,
             )
         return KSACache(page_pool=self.page_pool, request=self.page_pool.new_request())
 

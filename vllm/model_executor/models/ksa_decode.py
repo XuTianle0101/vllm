@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 
 import torch
 
-MAX_CACHED_TEXT_TOKENS = 8192
+MAX_CACHED_TEXT_TOKENS = 131072
 
 
 @dataclass
