@@ -1,0 +1,17 @@
+{
+  "eager-0.pt": {
+    "sha256": "8da7331c89375815249eb26a459f925bbc034287c9aaee02fadacb3c3086be2f",
+    "copy_verified": true,
+    "size_bytes": 1790925655
+  },
+  "graph-1.pt": {
+    "sha256": "4145efa5ca94bfbec7e117f99f4545b938648ee87eba7dd1eb500ea0a613e17e",
+    "copy_verified": true,
+    "size_bytes": 1790925655
+  },
+  "graph-2.pt": {
+    "sha256": "c23b8ace92c30b43c9cc1e69fe29f199eb7ece3dd329dbf22ec1073d435e6bcf",
+    "copy_verified": true,
+    "size_bytes": 1790925655
+  }
+}

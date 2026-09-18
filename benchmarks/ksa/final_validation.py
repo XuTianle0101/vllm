@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
-"""T07 isolated, resumable HF / V1 performance matrix and conservative gates."""
+"""Standard V1 performance using the fixed refactor baseline protocol."""
 
 import argparse
+import csv
 import importlib.metadata as metadata
-import json
+import math
 import os
 import statistics
 import subprocess
@@ -13,8 +14,16 @@ import time
 import traceback
 from pathlib import Path
 
-from baseline import LONG, command, write_json
-from prefill import BASELINE_ID, ROOT, TOLERANCE_ID, read
+from hf_reference import (
+    BASELINE_ID,
+    FIXTURES,
+    ROOT,
+    TOLERANCE_ID,
+    command,
+    read,
+    validate,
+    write_json,
+)
 
 
 def telemetry(worker, reset=False):
@@ -37,7 +46,7 @@ def worker(args):
     from vllm import LLM, SamplingParams
 
     args.output.mkdir(parents=True, exist_ok=False)
-    inputs = read(args.baseline / "inputs.json")
+    _, _, inputs = validate(args)
     tokens = inputs[f"length-{args.length}"]["input_ids"]
     begin = time.perf_counter()
     llm = LLM(
@@ -161,141 +170,163 @@ def worker(args):
         engine.engine_core.shutdown()
 
 
-def summarize(output):
-    processes = read(output / "processes.json")
+LENGTHS = [4096, 16384, 65536]
+METRICS = (
+    "ttft_ms",
+    "mean_decode_ms",
+    "tpot_steady_ms",
+    "tpot_boundary_ms",
+    "output_tokens_per_s",
+    "peak_memory_bytes",
+)
+
+
+def compare_metric(old, new, metric):
+    """Apply ticket 01's mean AND disjoint-range regression rule."""
+    ratio = statistics.mean(new) / statistics.mean(old)
+    disjoint = min(new) > max(old) or max(new) < min(old)
+    worse = ratio < 0.95 if metric == "output_tokens_per_s" else ratio > 1.05
+    if metric == "peak_memory_bytes":
+        status = "retest" if worse else "pass"
+    else:
+        # A range change only counts if it moved in the adverse direction.
+        adverse_range = (
+            max(new) < min(old)
+            if metric == "output_tokens_per_s"
+            else min(new) > max(old)
+        )
+        status = (
+            "regression"
+            if worse and disjoint
+            else ("retest" if worse or adverse_range else "pass")
+        )
+    return dict(status=status, mean_ratio=ratio, before=old, after=new)
+
+
+def summarize(args):
+    with args.before.open() as stream:
+        previous = list(csv.DictReader(stream))
     comparisons = []
-    for length in LONG:
-        hf = []
-        for rep in range(5):
-            path = output / f"hf-{length}" / "outputs" / f"timing-{length}-{rep}.json"
-            if path.exists():
-                hf.append(read(path))
+    for length in LENGTHS:
         for mode in ("eager", "graph"):
-            path = output / f"{mode}-{length}-1" / "timing.json"
-            vl = (
+            path = args.output / f"{mode}-{length}-1" / "timing.json"
+            old = [
+                r
+                for r in previous
+                if int(r["length"]) == length
+                and r["mode"] == mode
+                and int(r["batch"]) == 1
+                and int(r["repetition"]) >= 0
+            ]
+            new = (
                 [r for r in read(path) if r["repetition"] >= 0] if path.exists() else []
             )
-            complete = len(hf) == len(vl) == 5 and all(
-                r["status"] == "pass" for r in vl
+            complete = (
+                len(old) == len(new) == 5
+                and all(
+                    {int(r["repetition"]) for r in rows} == set(range(5))
+                    for rows in (old, new)
+                )
+                and all(
+                    math.isfinite(float(r[m])) and float(r[m]) > 0
+                    for r in old + new
+                    for m in METRICS
+                )
+                and all(
+                    r["status"] == "pass"
+                    and int(r["new_captures"]) == 0
+                    and int(r["free_pages_after"]) == int(r["expected_free_pages"])
+                    for r in old + new
+                )
             )
-            row = dict(length=length, mode=mode, status="not_run")
+            row = dict(
+                length=length,
+                mode=mode,
+                status="invalid" if path.exists() else "not_run",
+            )
             if complete:
-                h = [statistics.mean(r["decode_ms"]) for r in hf]
-                v = [r["mean_decode_ms"] for r in vl]
+                metrics = {
+                    m: compare_metric(
+                        [float(r[m]) for r in old], [float(r[m]) for r in new], m
+                    )
+                    for m in METRICS
+                }
+                states = {r["status"] for r in metrics.values()}
                 row.update(
-                    status="pass" if max(v) < min(h) else "fail",
-                    hf_decode_ms=h,
-                    vllm_decode_ms=v,
-                    decode_speedup=statistics.mean(h) / statistics.mean(v),
-                    hf_ttft_ms=[r["ttft_ms"] for r in hf],
-                    vllm_ttft_ms=[r["ttft_ms"] for r in vl],
+                    metrics=metrics,
+                    status=(
+                        "regression"
+                        if "regression" in states
+                        else "retest"
+                        if "retest" in states
+                        else "pass"
+                    ),
                 )
             comparisons.append(row)
-    required = [
-        r
-        for r in comparisons
-        if r["length"] in (16384, 32768, 65536) and r["mode"] == "graph"
-    ]
     result = dict(
         baseline_id=BASELINE_ID,
         tolerance_id=TOLERANCE_ID,
         comparisons=comparisons,
-        processes=processes,
-        decode_gate="pass" if all(r["status"] == "pass" for r in required) else "fail",
-        final_acceptance="not_evaluated",
-        note="Performance only. Accuracy, retrieval, service, lifecycle and KV "
-        "compression evidence must be reviewed separately. HF batch>1 is N/A.",
+        status="pass" if all(r["status"] == "pass" for r in comparisons) else "fail",
+        note="Performance only; HF accuracy and service checks are separate gates.",
     )
-    write_json(output / "summary.json", result)
+    write_json(args.output / "summary.json", result)
     return result
 
 
 def run(args):
-    from decode import validate
-
-    args.output.mkdir(parents=True, exist_ok=True)
+    args.output.mkdir(parents=True, exist_ok=False)
     _, lock, _ = validate(args)
-    packages = subprocess.check_output(
-        [
-            str(args.hf_python),
-            "-c",
-            (
-                "import importlib.metadata as m,json; "
-                "print(json.dumps({d.metadata['Name']: d.version "
-                "for d in m.distributions()}))"
-            ),
-        ],
-        text=True,
-    )
-    if json.loads(packages) != lock["packages"]:
-        raise ValueError("HF packages differ from frozen T00")
+    previous = read(args.before.with_name("environment.json"))
     identity = dict(
-        ticket="T07",
         git_sha=args.expected_sha,
-        baseline_id=BASELINE_ID,
-        tolerance_id=TOLERANCE_ID,
         model_hashes=lock["model_hashes"],
-        packages={d.metadata["Name"]: d.version for d in metadata.distributions()},
-        hf_packages=json.loads(packages),
+        packages={name: metadata.version(name) for name in previous["packages"]},
         command=sys.argv,
         gpu=command(
             "nvidia-smi",
             "--query-gpu=name,uuid,driver_version",
             "--format=csv,noheader",
         ),
-        scope="V1 scheduler + sampling + model, no HTTP; HF official cached generation",
+        scope="V1 scheduler + sampling + model, no HTTP",
         output_tokens=128,
         repetitions=5,
         warmups=1,
     )
-    env = args.output / "environment.json"
-    if env.exists():
-        previous = read(env)
-        if any(previous[k] != identity[k] for k in identity if k != "command"):
-            raise ValueError("Cannot resume a different runtime/source matrix")
-    else:
-        write_json(env, identity)
-    path = args.output / "processes.json"
-    processes = read(path) if path.exists() else []
-    done = {r["job"] for r in processes}
-    for length in args.lengths:
-        jobs = [
-            (
-                f"hf-{length}",
-                [
-                    str(args.hf_python),
-                    str(Path(__file__).with_name("baseline.py")),
-                    "--mode",
-                    "performance",
-                    "--case",
-                    f"length-{length}",
-                ],
-            )
-        ]
-        jobs += [
-            (
-                f"{mode}-{length}-{batch}",
-                [
-                    sys.executable,
-                    str(Path(__file__).resolve()),
-                    "--worker",
-                    "--length",
-                    str(length),
-                    "--batch",
-                    str(batch),
-                    "--mode",
-                    mode,
-                    "--baseline",
-                    str(args.baseline),
-                ],
-            )
-            for batch in args.batches
-            for mode in args.modes
-        ]
-        for name, argv in jobs:
-            if name in done:
-                continue
-            argv += ["--model", str(args.model), "--output", str(args.output / name)]
+    compatible = (
+        identity["gpu"] == previous["gpu"].rsplit(", ", 1)[0]
+        and identity["model_hashes"] == previous["model_hashes"]
+        and all(
+            identity["packages"].get(k) == v for k, v in previous["packages"].items()
+        )
+    )
+    identity["baseline_environment_matches"] = compatible
+    write_json(args.output / "environment.json", identity)
+    if not compatible:
+        raise ValueError("Performance hardware/dependencies differ from ticket 01")
+    processes = []
+    for length in LENGTHS:
+        for mode in ("eager", "graph"):
+            name = f"{mode}-{length}-1"
+            argv = [
+                sys.executable,
+                str(Path(__file__).resolve()),
+                "--worker",
+                "--length",
+                str(length),
+                "--batch",
+                "1",
+                "--mode",
+                mode,
+                "--baseline",
+                str(args.baseline),
+                "--model",
+                str(args.model),
+                "--expected-sha",
+                args.expected_sha,
+                "--output",
+                str(args.output / name),
+            ]
             print(f"Running {name}", flush=True)
             start = time.time()
             with (args.output / f"{name}.log").open("w") as log:
@@ -308,31 +339,30 @@ def run(args):
                     elapsed_s=time.time() - start,
                 )
             )
-            write_json(path, processes)
-            summarize(args.output)
+            write_json(args.output / "processes.json", processes)
+    result = summarize(args)
+    if result["status"] != "pass" or any(r["returncode"] for r in processes):
+        raise AssertionError("Performance comparison requires review; see summary.json")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", type=Path, required=True)
-    parser.add_argument("--baseline", type=Path, required=True)
+    parser.add_argument("--baseline", type=Path, default=FIXTURES)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--expected-sha")
+    parser.add_argument("--expected-sha", required=True)
     parser.add_argument(
-        "--hf-python", type=Path, default=ROOT / ".venv-ksa-hf/bin/python"
-    )
-    parser.add_argument("--lengths", type=int, nargs="+", default=LONG)
-    parser.add_argument("--batches", type=int, nargs="+", default=[1, 4, 8])
-    parser.add_argument(
-        "--modes", nargs="+", choices=["eager", "graph"], default=["eager", "graph"]
+        "--before",
+        type=Path,
+        default=ROOT / "docs/ksa/results/refactor-01/performance.csv",
     )
     parser.add_argument("--worker", action="store_true")
-    parser.add_argument("--length", type=int, choices=LONG)
-    parser.add_argument("--batch", type=int, choices=[1, 4, 8])
+    parser.add_argument("--length", type=int, choices=LENGTHS)
+    parser.add_argument("--batch", type=int, choices=[1])
     parser.add_argument("--mode", choices=["eager", "graph"])
     args = parser.parse_args()
-    if not set(args.lengths) <= set(LONG) or not set(args.batches) <= {1, 4, 8}:
-        parser.error("Unsupported matrix dimensions")
+    if args.worker and any(x is None for x in (args.length, args.batch, args.mode)):
+        parser.error("--worker requires --length, --batch and --mode")
     try:
         worker(args) if args.worker else run(args)
     except Exception as exc:

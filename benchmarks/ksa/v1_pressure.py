@@ -13,7 +13,7 @@ def run(args):
     os.environ["VLLM_ENABLE_V1_MULTIPROCESSING"] = "0"
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     import torch
-    from prefill import compare, read
+    from hf_reference import compare, load_reference
     from v1 import export_capture, install_capture
 
     from vllm import LLM, SamplingParams
@@ -67,7 +67,7 @@ def run(args):
     reference = torch.load(reference_path, weights_only=True)
     actual = torch.load(actual_path, weights_only=True)
     comparisons = {}
-    thresholds = read(args.baseline / "correctness.json")["thresholds"]
+    thresholds = load_reference(args.baseline)[0]["thresholds"]
     for name in names:
         positions = sorted(reference[name])
         comparisons[name] = compare(

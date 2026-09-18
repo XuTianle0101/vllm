@@ -1,0 +1,17 @@
+{
+  "time_utc": "2026-09-18T08:22:53.065175+00:00",
+  "head": "81d2c510efbfdf9efdd801e6b6204abfaff97c23",
+  "branch": "releases/v0.26.0-ksa",
+  "initial_worktree_clean": true,
+  "final_tracked_diff_names": [],
+  "final_untracked": [
+    "docs/ksa/refactor-baseline.md",
+    "docs/ksa/results/refactor-01/environment.json",
+    "docs/ksa/results/refactor-01/http.sh",
+    "docs/ksa/results/refactor-01/run.sh",
+    "docs/ksa/results/refactor-01/summary.json"
+  ],
+  "production_benchmarks_tests_unchanged": true,
+  "no_commit_or_history_rewrite": true,
+  "isolated_import_path": "/workspace/volume/h20-data/xutianle/KSA/vllm/vllm/__init__.py"
+}

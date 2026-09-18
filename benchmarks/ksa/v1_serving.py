@@ -105,6 +105,8 @@ async def run(args):
             )
             sampled = await complete(params)
             repeated = await complete(params)
+            report["seeded_responses"] = [sampled, repeated]
+            assert len(sampled["choices"]) == len(repeated["choices"]) == 2
             assert [c["text"] for c in sampled["choices"]] == [
                 c["text"] for c in repeated["choices"]
             ]
@@ -161,6 +163,9 @@ async def run(args):
             recovered = await complete(body)
             assert recovered["choices"][0]["text"] == expected["choices"][0]["text"]
             report["status"] = "pass"
+    except BaseException as exc:
+        report.update(status="fail", error=repr(exc))
+        raise
     finally:
         (args.output / "results.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, ensure_ascii=False))

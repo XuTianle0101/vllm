@@ -8,8 +8,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from baseline import command, write_json
-from prefill import ROOT
+from hf_reference import ROOT, command, write_json
 
 
 def inspect_worker(worker):

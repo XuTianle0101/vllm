@@ -1,0 +1,56 @@
+{
+  "git_sha": "81d2c510efbfdf9efdd801e6b6204abfaff97c23",
+  "baseline_id": "T00-305bf8f9dc429f1af60e",
+  "tolerance_id": "T00-tol-fbd0eb931ac1c7153403",
+  "input_hash": "a1b5caac8a86750dbdaf95f214f7335531fc922ddad65078d767d64ba10ca0aa",
+  "input_cases": 23,
+  "input_order_equal": true,
+  "input_ids_equal": true,
+  "thresholds": {
+    "logits_max_abs_error": 20.33521270751953,
+    "logits_rmse": 3.7059452533721924,
+    "logprobs_max_abs_error": 8.020130157470703,
+    "repeat_max_abs_error": 0.0,
+    "max_mismatch_margin": 0.5
+  },
+  "functions": {
+    "digest": {
+      "source": "baseline.py",
+      "ast_equal": true
+    },
+    "file_hash": {
+      "source": "baseline.py",
+      "ast_equal": true
+    },
+    "write_json": {
+      "source": "baseline.py",
+      "ast_equal": true
+    },
+    "command": {
+      "source": "baseline.py",
+      "ast_equal": true
+    },
+    "make_inputs": {
+      "source": "baseline.py",
+      "ast_equal": true
+    },
+    "metrics": {
+      "source": "baseline.py",
+      "ast_equal": true
+    },
+    "teacher": {
+      "source": "baseline.py",
+      "ast_equal": true
+    },
+    "tensor_error": {
+      "source": "prefill.py",
+      "ast_equal": true
+    },
+    "compare": {
+      "source": "prefill.py",
+      "ast_equal": true
+    }
+  },
+  "fixture_bytes": 80821,
+  "reference_sha256": "d923b8c31c5c8c02d6de92615012e02d2dc1d948063fabaf5508939297b6c3e3"
+}

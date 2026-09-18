@@ -1,0 +1,2134 @@
+{
+  "git_sha": "81d2c510efbfdf9efdd801e6b6204abfaff97c23",
+  "production_diff": "",
+  "results": {
+    "prefill": {
+      "status": "pass",
+      "runtime": {
+        "max_internal_rows": 257
+      },
+      "row_budget": 257,
+      "total": 17,
+      "passed": 17,
+      "cases": [
+        {
+          "case": "length-1",
+          "status": "pass",
+          "logits_max_abs_error": 1.0625,
+          "logits_rmse": 0.1556151658296585,
+          "logprobs_max_abs_error": 0.8456859588623047,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-7",
+          "status": "pass",
+          "logits_max_abs_error": 0.5,
+          "logits_rmse": 0.12358785420656204,
+          "logprobs_max_abs_error": 0.3845400810241699,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-8",
+          "status": "pass",
+          "logits_max_abs_error": 1.46875,
+          "logits_rmse": 0.2829974889755249,
+          "logprobs_max_abs_error": 0.37042999267578125,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-9",
+          "status": "pass",
+          "logits_max_abs_error": 1.5,
+          "logits_rmse": 0.36439117789268494,
+          "logprobs_max_abs_error": 0.3115673065185547,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-15",
+          "status": "pass",
+          "logits_max_abs_error": 2.1015625,
+          "logits_rmse": 0.5900464653968811,
+          "logprobs_max_abs_error": 0.3864278793334961,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-16",
+          "status": "pass",
+          "logits_max_abs_error": 2.4375,
+          "logits_rmse": 0.6528916954994202,
+          "logprobs_max_abs_error": 0.4374122619628906,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-17",
+          "status": "pass",
+          "logits_max_abs_error": 2.2265625,
+          "logits_rmse": 0.6083664298057556,
+          "logprobs_max_abs_error": 0.43730926513671875,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1023",
+          "status": "pass",
+          "logits_max_abs_error": 2.75,
+          "logits_rmse": 0.5552889108657837,
+          "logprobs_max_abs_error": 1.2812080383300781,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1024",
+          "status": "pass",
+          "logits_max_abs_error": 2.0,
+          "logits_rmse": 0.5030108094215393,
+          "logprobs_max_abs_error": 1.0312309265136719,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1025",
+          "status": "pass",
+          "logits_max_abs_error": 2.75,
+          "logits_rmse": 0.5889322757720947,
+          "logprobs_max_abs_error": 1.0937042236328125,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1031",
+          "status": "pass",
+          "logits_max_abs_error": 1.75,
+          "logits_rmse": 0.4544767141342163,
+          "logprobs_max_abs_error": 0.90625,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1032",
+          "status": "pass",
+          "logits_max_abs_error": 2.0,
+          "logits_rmse": 0.6217595338821411,
+          "logprobs_max_abs_error": 0.6246719360351562,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1033",
+          "status": "pass",
+          "logits_max_abs_error": 2.25,
+          "logits_rmse": 0.7344133257865906,
+          "logprobs_max_abs_error": 0.6562461853027344,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-4096",
+          "status": "pass",
+          "logits_max_abs_error": 1.375,
+          "logits_rmse": 0.4853843152523041,
+          "logprobs_max_abs_error": 0.7031059265136719,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "english",
+          "status": "pass",
+          "logits_max_abs_error": 0.5,
+          "logits_rmse": 0.12727653980255127,
+          "logprobs_max_abs_error": 0.45872974395751953,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "chinese",
+          "status": "pass",
+          "logits_max_abs_error": 0.8125,
+          "logits_rmse": 0.18679490685462952,
+          "logprobs_max_abs_error": 0.4884166717529297,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "retrieval-4096",
+          "status": "pass",
+          "logits_max_abs_error": 1.6796875,
+          "logits_rmse": 0.35802942514419556,
+          "logprobs_max_abs_error": 0.4908599853515625,
+          "max_mismatch_margin": 0.25
+        }
+      ],
+      "max_errors": {
+        "logits_max_abs_error": 2.75,
+        "logits_rmse": 0.7344133257865906,
+        "logprobs_max_abs_error": 1.2812080383300781,
+        "max_mismatch_margin": 0.25
+      },
+      "baseline_comparison": {
+        "new_failures": 0,
+        "max_error_deltas": {
+          "logits_max_abs_error": 0.625,
+          "logits_rmse": 0.1437763273715973,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.25
+        },
+        "changed_rows": [
+          {
+            "key": [
+              "length-8",
+              null,
+              null
+            ],
+            "new_failure": false,
+            "error_deltas": {
+              "logits_max_abs_error": -1.21875,
+              "logits_rmse": -0.26528501510620117,
+              "logprobs_max_abs_error": -0.11092758178710938,
+              "max_mismatch_margin": -0.25
+            }
+          },
+          {
+            "key": [
+              "length-9",
+              null,
+              null
+            ],
+            "new_failure": false,
+            "error_deltas": {
+              "logits_max_abs_error": 0.625,
+              "logits_rmse": 0.1437763273715973,
+              "logprobs_max_abs_error": -0.050140380859375,
+              "max_mismatch_margin": 0.25
+            }
+          },
+          {
+            "key": [
+              "length-15",
+              null,
+              null
+            ],
+            "new_failure": false,
+            "error_deltas": {
+              "logits_max_abs_error": 0.4140625,
+              "logits_rmse": 0.1371011734008789,
+              "logprobs_max_abs_error": -0.0902256965637207,
+              "max_mismatch_margin": 0.25
+            }
+          }
+        ]
+      }
+    },
+    "teacher": {
+      "status": "pass",
+      "runtime": [
+        {
+          "mode": "eager",
+          "free_pages": 106433,
+          "runner": "KSAGPUModelRunner",
+          "graph_replays": 0,
+          "graph_enabled": false
+        },
+        {
+          "mode": "graph",
+          "free_pages": 106795,
+          "runner": "KSAGPUModelRunner",
+          "graph_replays": 192,
+          "graph_enabled": true
+        }
+      ],
+      "total": 46,
+      "passed": 46,
+      "cases": [
+        {
+          "case": "length-1",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 0.5625,
+          "logits_rmse": 0.12888407707214355,
+          "logprobs_max_abs_error": 0.44585609436035156,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-7",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 2.4140625,
+          "logits_rmse": 0.4386807382106781,
+          "logprobs_max_abs_error": 0.4892892837524414,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-8",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 0.642578125,
+          "logits_rmse": 0.19308128952980042,
+          "logprobs_max_abs_error": 0.4856882095336914,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-9",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 0.96875,
+          "logits_rmse": 0.2511652708053589,
+          "logprobs_max_abs_error": 0.4514913558959961,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-15",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 0.9921875,
+          "logits_rmse": 0.24679557979106903,
+          "logprobs_max_abs_error": 0.4214000701904297,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-16",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 1.40625,
+          "logits_rmse": 0.3392476439476013,
+          "logprobs_max_abs_error": 0.3779869079589844,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-17",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 0.625,
+          "logits_rmse": 0.18646381795406342,
+          "logprobs_max_abs_error": 0.3670310974121094,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1023",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 1.75,
+          "logits_rmse": 0.5369174480438232,
+          "logprobs_max_abs_error": 0.5936985015869141,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1024",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 1.5,
+          "logits_rmse": 0.42901721596717834,
+          "logprobs_max_abs_error": 1.1249771118164062,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1025",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 1.75,
+          "logits_rmse": 0.5029743313789368,
+          "logprobs_max_abs_error": 0.9374961853027344,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1031",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 2.5,
+          "logits_rmse": 0.604025661945343,
+          "logprobs_max_abs_error": 0.6874980926513672,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1032",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 2.25,
+          "logits_rmse": 0.7364007830619812,
+          "logprobs_max_abs_error": 1.1875,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1033",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 2.0,
+          "logits_rmse": 0.728352427482605,
+          "logprobs_max_abs_error": 1.15625,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-4096",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 2.25,
+          "logits_rmse": 0.8827375769615173,
+          "logprobs_max_abs_error": 0.9999237060546875,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-16384",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 2.25,
+          "logits_rmse": 0.7132025957107544,
+          "logprobs_max_abs_error": 0.8749771118164062,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-32768",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 4.5,
+          "logits_rmse": 0.7152103781700134,
+          "logprobs_max_abs_error": 2.9687509536743164,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-65536",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 3.25,
+          "logits_rmse": 1.2672728300094604,
+          "logprobs_max_abs_error": 1.3748970031738281,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-130944",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 4.0,
+          "logits_rmse": 0.8549402952194214,
+          "logprobs_max_abs_error": 0.8207473754882812,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "english",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 0.5,
+          "logits_rmse": 0.1392407864332199,
+          "logprobs_max_abs_error": 0.4227943420410156,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "chinese",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 0.625,
+          "logits_rmse": 0.165885791182518,
+          "logprobs_max_abs_error": 0.4650135040283203,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-4096",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 1.625,
+          "logits_rmse": 0.3751811683177948,
+          "logprobs_max_abs_error": 0.48076725006103516,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-32768",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 1.25,
+          "logits_rmse": 0.3896237015724182,
+          "logprobs_max_abs_error": 0.49504661560058594,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-65536",
+          "mode": "eager",
+          "status": "pass",
+          "logits_max_abs_error": 1.171875,
+          "logits_rmse": 0.3688446283340454,
+          "logprobs_max_abs_error": 0.5566329956054688,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-8",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 0.75,
+          "logits_rmse": 0.21634460985660553,
+          "logprobs_max_abs_error": 0.3811054229736328,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-7",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 1.734375,
+          "logits_rmse": 0.3089448809623718,
+          "logprobs_max_abs_error": 0.48572826385498047,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-1",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 0.5625,
+          "logits_rmse": 0.1147981658577919,
+          "logprobs_max_abs_error": 0.44585609436035156,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-16",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 1.4375,
+          "logits_rmse": 0.33949339389801025,
+          "logprobs_max_abs_error": 0.3744544982910156,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-15",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 0.8125,
+          "logits_rmse": 0.2493809014558792,
+          "logprobs_max_abs_error": 0.4209766387939453,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-9",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 0.625,
+          "logits_rmse": 0.16209983825683594,
+          "logprobs_max_abs_error": 0.460357666015625,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-1024",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 1.5,
+          "logits_rmse": 0.46174395084381104,
+          "logprobs_max_abs_error": 1.0312347412109375,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1023",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 1.625,
+          "logits_rmse": 0.517457127571106,
+          "logprobs_max_abs_error": 0.6250019073486328,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-17",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 2.13671875,
+          "logits_rmse": 0.5552869439125061,
+          "logprobs_max_abs_error": 0.4594249725341797,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1032",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 2.75,
+          "logits_rmse": 0.7531414031982422,
+          "logprobs_max_abs_error": 1.2499980926513672,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1031",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 1.5,
+          "logits_rmse": 0.4868682324886322,
+          "logprobs_max_abs_error": 0.8437519073486328,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1025",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 1.5,
+          "logits_rmse": 0.4347611665725708,
+          "logprobs_max_abs_error": 0.9375,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-16384",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 2.0,
+          "logits_rmse": 0.6069324612617493,
+          "logprobs_max_abs_error": 0.9999027252197266,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-4096",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 2.25,
+          "logits_rmse": 0.7851821184158325,
+          "logprobs_max_abs_error": 1.0624198913574219,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1033",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 2.5,
+          "logits_rmse": 0.7281550765037537,
+          "logprobs_max_abs_error": 1.4375,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-130944",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 4.0,
+          "logits_rmse": 1.235915184020996,
+          "logprobs_max_abs_error": 1.453125,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-65536",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 3.0,
+          "logits_rmse": 0.9925440549850464,
+          "logprobs_max_abs_error": 1.249979019165039,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-32768",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 6.375,
+          "logits_rmse": 1.0054256916046143,
+          "logprobs_max_abs_error": 4.249999046325684,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-4096",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 1.5,
+          "logits_rmse": 0.3661130368709564,
+          "logprobs_max_abs_error": 0.4845561981201172,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "chinese",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 0.625,
+          "logits_rmse": 0.18598143756389618,
+          "logprobs_max_abs_error": 0.4917783737182617,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "english",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 0.5,
+          "logits_rmse": 0.1293095499277115,
+          "logprobs_max_abs_error": 0.43528079986572266,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "retrieval-65536",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 1.5625,
+          "logits_rmse": 0.4465104043483734,
+          "logprobs_max_abs_error": 0.5820407867431641,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-32768",
+          "mode": "graph",
+          "status": "pass",
+          "logits_max_abs_error": 2.5859375,
+          "logits_rmse": 0.6513528227806091,
+          "logprobs_max_abs_error": 0.8039188385009766,
+          "max_mismatch_margin": 0.0
+        }
+      ],
+      "max_errors": {
+        "logits_max_abs_error": 6.375,
+        "logits_rmse": 1.2672728300094604,
+        "logprobs_max_abs_error": 4.249999046325684,
+        "max_mismatch_margin": 0.25
+      }
+    },
+    "graphs": {
+      "status": "pass",
+      "runtime": [
+        {
+          "replays": 0,
+          "captures": 0
+        },
+        {
+          "replays": 735,
+          "captures": 14
+        },
+        {
+          "replays": 1480,
+          "captures": 25
+        }
+      ],
+      "retrieval": [
+        {
+          "case": "retrieval-4096",
+          "mode": "eager",
+          "repeat": 0,
+          "text": " 73921.\n</output>\n\nThe secret code is 73921.\n 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 7",
+          "expected_answer": "73921",
+          "status": "pass"
+        },
+        {
+          "case": "retrieval-32768",
+          "mode": "eager",
+          "repeat": 0,
+          "text": " 73921What is the secret code hidden within the following text?\n\nAn ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry.",
+          "expected_answer": "73921",
+          "status": "pass"
+        },
+        {
+          "case": "retrieval-65536",
+          "mode": "eager",
+          "repeat": 0,
+          "text": " 73921What is the secret code? The secret code is 73921.\n. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 7392",
+          "expected_answer": "73921",
+          "status": "pass"
+        },
+        {
+          "case": "retrieval-65536",
+          "mode": "graph",
+          "repeat": 1,
+          "text": " 73921A: Can you please tell me the secret code? B: Sure, it's 73921. A: Thank you! B: You're welcome! A: Can you please tell me the secret code? B: Sure, it's 73921. A: Thank you! B: You're welcome! A: Can you please tell me the secret code? B: Sure, it's 73921. A: Thank you! B: You're welcome! A: Can you please tell me the secret code? B: Sure, it",
+          "expected_answer": "73921",
+          "status": "pass"
+        },
+        {
+          "case": "retrieval-32768",
+          "mode": "graph",
+          "repeat": 1,
+          "text": " 73921Based on the content of <doc_id:0000000000000000>, answer the following questions: Okay, I need to create a new product for a company that sells eco-friendly products. The product should be a reusable water bottle made from recycled plastic. I want to make sure it's durable and has a good design. What features should I include in the product description to make it appealing to customers?\nYour thought and answer: Okay, the user wants to create a new product for a company that sells eco-friendly products. The product is a reusable",
+          "expected_answer": "73921",
+          "status": "pass"
+        },
+        {
+          "case": "retrieval-4096",
+          "mode": "graph",
+          "repeat": 1,
+          "text": " 73921\n.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.  An ordinary archive entry.",
+          "expected_answer": "73921",
+          "status": "pass"
+        },
+        {
+          "case": "retrieval-4096",
+          "mode": "graph",
+          "repeat": 2,
+          "text": " 73921.\n</output>\n\nThe secret code is 73921.\n 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 73921. 7",
+          "expected_answer": "73921",
+          "status": "pass"
+        },
+        {
+          "case": "retrieval-32768",
+          "mode": "graph",
+          "repeat": 2,
+          "text": " 73921What is the secret code hidden within the following text?\n\nAn ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry. An ordinary archive entry.",
+          "expected_answer": "73921",
+          "status": "pass"
+        },
+        {
+          "case": "retrieval-65536",
+          "mode": "graph",
+          "repeat": 2,
+          "text": " 73921What is the secret code? The secret code is 73921.\n. 73921 is the secret code. 73921 is the secret code. 73921 is the secret code. 73921 is the secret code. 73921 is the secret code. 73921 is the secret code. 73921 is the secret code. 73921 is the secret code. 73921 is the secret code. 739",
+          "expected_answer": "73921",
+          "status": "pass"
+        }
+      ],
+      "total": 46,
+      "passed": 46,
+      "cases": [
+        {
+          "case": "length-1",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 0.5,
+          "logits_rmse": 0.10096575319766998,
+          "logprobs_max_abs_error": 0.5624885559082031,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-7",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 10.3125,
+          "logits_rmse": 0.7726588845252991,
+          "logprobs_max_abs_error": 5.832235336303711,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-8",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 2.71875,
+          "logits_rmse": 0.3267013132572174,
+          "logprobs_max_abs_error": 1.1896190643310547,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-9",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 1.640625,
+          "logits_rmse": 0.26870331168174744,
+          "logprobs_max_abs_error": 0.4141502380371094,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-15",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 4.0,
+          "logits_rmse": 0.5365955829620361,
+          "logprobs_max_abs_error": 0.7499866485595703,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-16",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 0.5,
+          "logits_rmse": 0.12650734186172485,
+          "logprobs_max_abs_error": 0.2858004570007324,
+          "max_mismatch_margin": 0.125
+        },
+        {
+          "case": "length-17",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 0.3125,
+          "logits_rmse": 0.11509227752685547,
+          "logprobs_max_abs_error": 0.22406959533691406,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1023",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 1.0,
+          "logits_rmse": 0.16806946694850922,
+          "logprobs_max_abs_error": 0.5000038146972656,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1024",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 2.625,
+          "logits_rmse": 0.3361721336841583,
+          "logprobs_max_abs_error": 1.1249046325683594,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1025",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 2.5,
+          "logits_rmse": 0.30471596121788025,
+          "logprobs_max_abs_error": 0.6874485015869141,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1031",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 1.875,
+          "logits_rmse": 0.28234729170799255,
+          "logprobs_max_abs_error": 0.7499752044677734,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1032",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 12.5,
+          "logits_rmse": 0.8965024352073669,
+          "logprobs_max_abs_error": 4.124841690063477,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1033",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 4.375,
+          "logits_rmse": 0.41950446367263794,
+          "logprobs_max_abs_error": 0.9999866485595703,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-4096",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 14.0,
+          "logits_rmse": 1.4073363542556763,
+          "logprobs_max_abs_error": 4.812480926513672,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-16384",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 7.75,
+          "logits_rmse": 1.0844615697860718,
+          "logprobs_max_abs_error": 4.500008583068848,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-32768",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 6.0,
+          "logits_rmse": 0.9748386740684509,
+          "logprobs_max_abs_error": 4.687490463256836,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-65536",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 7.875,
+          "logits_rmse": 0.896199107170105,
+          "logprobs_max_abs_error": 3.84375,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-130944",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 14.125,
+          "logits_rmse": 2.5453410148620605,
+          "logprobs_max_abs_error": 5.906238555908203,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "english",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 1.1796875,
+          "logits_rmse": 0.27295491099357605,
+          "logprobs_max_abs_error": 0.5624885559082031,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "chinese",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 0.375,
+          "logits_rmse": 0.07314702868461609,
+          "logprobs_max_abs_error": 0.2991209030151367,
+          "max_mismatch_margin": 0.125
+        },
+        {
+          "case": "retrieval-4096",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 0.5,
+          "logits_rmse": 0.20631828904151917,
+          "logprobs_max_abs_error": 0.4365711212158203,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "retrieval-32768",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 1.0,
+          "logits_rmse": 0.3192211389541626,
+          "logprobs_max_abs_error": 0.5291061401367188,
+          "max_mismatch_margin": 0.125
+        },
+        {
+          "case": "retrieval-65536",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 2.875,
+          "logits_rmse": 1.0696563720703125,
+          "logprobs_max_abs_error": 0.7814769744873047,
+          "max_mismatch_margin": 0.125
+        },
+        {
+          "case": "length-1",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-7",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-8",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-9",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-15",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-16",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-17",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1023",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1024",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1025",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1031",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1032",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1033",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-4096",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-16384",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-32768",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-65536",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-130944",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 4.375,
+          "logits_rmse": 0.338218092918396,
+          "logprobs_max_abs_error": 0.9218730926513672,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "english",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "chinese",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-4096",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 7.625,
+          "logits_rmse": 0.652137815952301,
+          "logprobs_max_abs_error": 2.4647293090820312,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-32768",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 2.1875,
+          "logits_rmse": 0.2209004908800125,
+          "logprobs_max_abs_error": 1.5936965942382812,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-65536",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 1.4375,
+          "logits_rmse": 0.2874954640865326,
+          "logprobs_max_abs_error": 0.32915306091308594,
+          "max_mismatch_margin": 0.0
+        }
+      ],
+      "max_errors": {
+        "logits_max_abs_error": 14.125,
+        "logits_rmse": 2.5453410148620605,
+        "logprobs_max_abs_error": 5.906238555908203,
+        "max_mismatch_margin": 0.25
+      },
+      "baseline_comparison": {
+        "new_failures": 0,
+        "max_error_deltas": {
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        "changed_rows": []
+      }
+    },
+    "generation-hf": {
+      "status": "fail",
+      "total": 69,
+      "passed": 54,
+      "cases": [
+        {
+          "case": "length-1",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 1.5,
+          "logits_rmse": 0.14313524961471558,
+          "logprobs_max_abs_error": 2.499958038330078,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-1",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 1.375,
+          "logits_rmse": 0.1252758800983429,
+          "logprobs_max_abs_error": 2.124969482421875,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-1",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 1.5,
+          "logits_rmse": 0.14313524961471558,
+          "logprobs_max_abs_error": 2.499958038330078,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-7",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 2.0625,
+          "logits_rmse": 0.36290714144706726,
+          "logprobs_max_abs_error": 0.9810657501220703,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-7",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 10.375,
+          "logits_rmse": 1.016723871231079,
+          "logprobs_max_abs_error": 5.351169586181641,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-7",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 2.0625,
+          "logits_rmse": 0.36290714144706726,
+          "logprobs_max_abs_error": 0.9810657501220703,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-8",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 1.1875,
+          "logits_rmse": 0.2579292953014374,
+          "logprobs_max_abs_error": 0.5887813568115234,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-8",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 2.21875,
+          "logits_rmse": 0.48631295561790466,
+          "logprobs_max_abs_error": 1.2170028686523438,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-8",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 1.1875,
+          "logits_rmse": 0.2579292953014374,
+          "logprobs_max_abs_error": 0.5887813568115234,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-9",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 1.1953125,
+          "logits_rmse": 0.19398780167102814,
+          "logprobs_max_abs_error": 0.43002891540527344,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-9",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 1.765625,
+          "logits_rmse": 0.24808579683303833,
+          "logprobs_max_abs_error": 0.49709224700927734,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-9",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 1.1953125,
+          "logits_rmse": 0.19398780167102814,
+          "logprobs_max_abs_error": 0.43002891540527344,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-15",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 5.5,
+          "logits_rmse": 0.6186914443969727,
+          "logprobs_max_abs_error": 0.7499637603759766,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-15",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 3.25,
+          "logits_rmse": 0.4936281740665436,
+          "logprobs_max_abs_error": 0.8732318878173828,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-15",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 5.5,
+          "logits_rmse": 0.6186914443969727,
+          "logprobs_max_abs_error": 0.7499637603759766,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-16",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 9.75,
+          "logits_rmse": 0.7993578314781189,
+          "logprobs_max_abs_error": 1.9368858337402344,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-16",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 10.5625,
+          "logits_rmse": 1.1680283546447754,
+          "logprobs_max_abs_error": 5.0000152587890625,
+          "max_mismatch_margin": 0.125
+        },
+        {
+          "case": "length-16",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 9.75,
+          "logits_rmse": 0.7993578314781189,
+          "logprobs_max_abs_error": 1.9368858337402344,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-17",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 8.75,
+          "logits_rmse": 1.003344178199768,
+          "logprobs_max_abs_error": 0.8751296997070312,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-17",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 18.6875,
+          "logits_rmse": 1.4379807710647583,
+          "logprobs_max_abs_error": 3.187562942504883,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-17",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 8.75,
+          "logits_rmse": 1.003344178199768,
+          "logprobs_max_abs_error": 0.8751296997070312,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "length-1023",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "fail",
+          "logits_max_abs_error": 35.75,
+          "logits_rmse": 2.714395046234131,
+          "logprobs_max_abs_error": 5.328088760375977,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1023",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "fail",
+          "logits_max_abs_error": 35.75,
+          "logits_rmse": 2.711172342300415,
+          "logprobs_max_abs_error": 5.328088760375977,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1023",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "fail",
+          "logits_max_abs_error": 35.75,
+          "logits_rmse": 2.714395046234131,
+          "logprobs_max_abs_error": 5.328088760375977,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1024",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "fail",
+          "logits_max_abs_error": 28.75,
+          "logits_rmse": 2.198162794113159,
+          "logprobs_max_abs_error": 4.625120162963867,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1024",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "fail",
+          "logits_max_abs_error": 27.75,
+          "logits_rmse": 2.1302037239074707,
+          "logprobs_max_abs_error": 5.000024795532227,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1024",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "fail",
+          "logits_max_abs_error": 28.75,
+          "logits_rmse": 2.198162794113159,
+          "logprobs_max_abs_error": 4.625120162963867,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1025",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 5.8125,
+          "logits_rmse": 0.6817644834518433,
+          "logprobs_max_abs_error": 4.125043869018555,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1025",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 4.5,
+          "logits_rmse": 0.5371283888816833,
+          "logprobs_max_abs_error": 4.125040054321289,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1025",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 5.8125,
+          "logits_rmse": 0.6817644834518433,
+          "logprobs_max_abs_error": 4.125043869018555,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1031",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "fail",
+          "logits_max_abs_error": 28.375,
+          "logits_rmse": 2.177574634552002,
+          "logprobs_max_abs_error": 4.687593460083008,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1031",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "fail",
+          "logits_max_abs_error": 28.125,
+          "logits_rmse": 2.128626585006714,
+          "logprobs_max_abs_error": 4.937568664550781,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1031",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "fail",
+          "logits_max_abs_error": 28.375,
+          "logits_rmse": 2.177574634552002,
+          "logprobs_max_abs_error": 4.687593460083008,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1032",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "fail",
+          "logits_max_abs_error": 22.25,
+          "logits_rmse": 1.78680419921875,
+          "logprobs_max_abs_error": 14.078042984008789,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1032",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "fail",
+          "logits_max_abs_error": 33.625,
+          "logits_rmse": 2.567350149154663,
+          "logprobs_max_abs_error": 14.351476669311523,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1032",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "fail",
+          "logits_max_abs_error": 22.25,
+          "logits_rmse": 1.78680419921875,
+          "logprobs_max_abs_error": 14.078042984008789,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1033",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "fail",
+          "logits_max_abs_error": 27.75,
+          "logits_rmse": 2.112842321395874,
+          "logprobs_max_abs_error": 4.812570571899414,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1033",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "fail",
+          "logits_max_abs_error": 27.75,
+          "logits_rmse": 2.1173348426818848,
+          "logprobs_max_abs_error": 4.812559127807617,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-1033",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "fail",
+          "logits_max_abs_error": 27.75,
+          "logits_rmse": 2.112842321395874,
+          "logprobs_max_abs_error": 4.812570571899414,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-4096",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 14.0,
+          "logits_rmse": 1.121071219444275,
+          "logprobs_max_abs_error": 4.187482833862305,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-4096",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 11.5,
+          "logits_rmse": 1.3049588203430176,
+          "logprobs_max_abs_error": 3.999990463256836,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-4096",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 14.0,
+          "logits_rmse": 1.121071219444275,
+          "logprobs_max_abs_error": 4.187482833862305,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-16384",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 8.5,
+          "logits_rmse": 0.6924713253974915,
+          "logprobs_max_abs_error": 3.9374923706054688,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-16384",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 5.75,
+          "logits_rmse": 0.9595097303390503,
+          "logprobs_max_abs_error": 4.812508583068848,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-16384",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 8.5,
+          "logits_rmse": 0.6924713253974915,
+          "logprobs_max_abs_error": 3.9374923706054688,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-32768",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 6.0,
+          "logits_rmse": 1.0863758325576782,
+          "logprobs_max_abs_error": 4.000000953674316,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-32768",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 5.0,
+          "logits_rmse": 0.8203287124633789,
+          "logprobs_max_abs_error": 3.1562442779541016,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-32768",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 6.0,
+          "logits_rmse": 1.0863758325576782,
+          "logprobs_max_abs_error": 4.000000953674316,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-65536",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 4.75,
+          "logits_rmse": 0.96625155210495,
+          "logprobs_max_abs_error": 1.9687480926513672,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-65536",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 4.25,
+          "logits_rmse": 0.7926342487335205,
+          "logprobs_max_abs_error": 2.375001907348633,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-65536",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 4.75,
+          "logits_rmse": 0.96625155210495,
+          "logprobs_max_abs_error": 1.9687480926513672,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-130944",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 10.75,
+          "logits_rmse": 1.9535017013549805,
+          "logprobs_max_abs_error": 4.12498664855957,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-130944",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 13.25,
+          "logits_rmse": 3.3940460681915283,
+          "logprobs_max_abs_error": 5.281251907348633,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "length-130944",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 10.75,
+          "logits_rmse": 1.9208284616470337,
+          "logprobs_max_abs_error": 4.12498664855957,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "english",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 1.71875,
+          "logits_rmse": 0.332409530878067,
+          "logprobs_max_abs_error": 1.468465805053711,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "english",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 1.75,
+          "logits_rmse": 0.27061963081359863,
+          "logprobs_max_abs_error": 1.3747787475585938,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "english",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 1.71875,
+          "logits_rmse": 0.332409530878067,
+          "logprobs_max_abs_error": 1.468465805053711,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "chinese",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 1.875,
+          "logits_rmse": 0.167683944106102,
+          "logprobs_max_abs_error": 1.4979248046875,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "chinese",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 3.6875,
+          "logits_rmse": 0.14819298684597015,
+          "logprobs_max_abs_error": 5.233804702758789,
+          "max_mismatch_margin": 0.125
+        },
+        {
+          "case": "chinese",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 1.875,
+          "logits_rmse": 0.167683944106102,
+          "logprobs_max_abs_error": 1.4979248046875,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-4096",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 5.625,
+          "logits_rmse": 1.19230318069458,
+          "logprobs_max_abs_error": 4.507537841796875,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-4096",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 7.01171875,
+          "logits_rmse": 0.9408378601074219,
+          "logprobs_max_abs_error": 0.6812362670898438,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-4096",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 8.0,
+          "logits_rmse": 1.18483304977417,
+          "logprobs_max_abs_error": 3.155853271484375,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-32768",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 2.25,
+          "logits_rmse": 0.37869125604629517,
+          "logprobs_max_abs_error": 1.8749332427978516,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-32768",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 3.0,
+          "logits_rmse": 0.4309942424297333,
+          "logprobs_max_abs_error": 0.9672603607177734,
+          "max_mismatch_margin": 0.125
+        },
+        {
+          "case": "retrieval-32768",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 2.625,
+          "logits_rmse": 0.3992706537246704,
+          "logprobs_max_abs_error": 2.2811641693115234,
+          "max_mismatch_margin": 0.0
+        },
+        {
+          "case": "retrieval-65536",
+          "mode": "eager",
+          "repeat": 0,
+          "status": "pass",
+          "logits_max_abs_error": 4.0,
+          "logits_rmse": 0.9591856002807617,
+          "logprobs_max_abs_error": 1.3124542236328125,
+          "max_mismatch_margin": 0.25
+        },
+        {
+          "case": "retrieval-65536",
+          "mode": "graph",
+          "repeat": 1,
+          "status": "pass",
+          "logits_max_abs_error": 3.5,
+          "logits_rmse": 0.5891718864440918,
+          "logprobs_max_abs_error": 1.981313705444336,
+          "max_mismatch_margin": 0.125
+        },
+        {
+          "case": "retrieval-65536",
+          "mode": "graph",
+          "repeat": 2,
+          "status": "pass",
+          "logits_max_abs_error": 2.78125,
+          "logits_rmse": 0.7278915643692017,
+          "logprobs_max_abs_error": 1.1109237670898438,
+          "max_mismatch_margin": 0.25
+        }
+      ],
+      "max_errors": {
+        "logits_max_abs_error": 35.75,
+        "logits_rmse": 3.3940460681915283,
+        "logprobs_max_abs_error": 14.351476669311523,
+        "max_mismatch_margin": 0.25
+      },
+      "baseline_comparison": {
+        "new_failures": 0,
+        "max_error_deltas": {
+          "logits_max_abs_error": 0.0,
+          "logits_rmse": 0.0,
+          "logprobs_max_abs_error": 0.0,
+          "max_mismatch_margin": 0.0
+        },
+        "changed_rows": []
+      }
+    },
+    "pressure": {
+      "status": "pass",
+      "preemptions": 1,
+      "steps": 154,
+      "output_tokens_per_request": 80,
+      "free_blocks": 329
+    },
+    "plain-qwen3": {
+      "status": "pass",
+      "runtime": {
+        "model": "Qwen3ForCausalLM",
+        "runner": "GPUModelRunner"
+      },
+      "expected": [
+        [
+          18,
+          215,
+          55,
+          252,
+          115,
+          10,
+          230,
+          18,
+          222,
+          6,
+          208,
+          131,
+          30,
+          41,
+          197,
+          208
+        ],
+        [
+          253,
+          42,
+          225,
+          225,
+          225,
+          225,
+          225,
+          225,
+          225,
+          225,
+          225,
+          225,
+          225,
+          225,
+          225,
+          225
+        ]
+      ],
+      "actual": [
+        [
+          18,
+          215,
+          55,
+          252,
+          115,
+          10,
+          230,
+          18,
+          222,
+          6,
+          208,
+          131,
+          30,
+          41,
+          197,
+          208
+        ],
+        [
+          253,
+          42,
+          142,
+          253,
+          42,
+          142,
+          85,
+          185,
+          42,
+          142,
+          196,
+          253,
+          42,
+          142,
+          196,
+          253
+        ]
+      ],
+      "same_prefix": [
+        {
+          "max_logprob_error": 0.007791996002197266,
+          "max_mismatch_margin": 0.0,
+          "status": "pass"
+        },
+        {
+          "max_logprob_error": 0.004803180694580078,
+          "max_mismatch_margin": 0.001953125,
+          "status": "pass"
+        }
+      ],
+      "exact_tokens": false,
+      "logprob_atol": 0.05,
+      "mismatch_margin_atol": 0.02,
+      "prompts": [
+        [
+          11,
+          42,
+          71,
+          8
+        ],
+        [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ]
+      ],
+      "git_sha": "81d2c510efbfdf9efdd801e6b6204abfaff97c23",
+      "seed": 17,
+      "scope": "Tiny deterministic native Qwen3 HF/vLLM greedy regression; not a pretrained Qwen3 model quality evaluation"
+    },
+    "http-eager": {
+      "url": "http://127.0.0.1:18015",
+      "status": "pass",
+      "concurrency": [
+        {
+          "requests": 1,
+          "elapsed_s": 0.4008976435288787,
+          "near_tie_divergences": []
+        },
+        {
+          "requests": 4,
+          "elapsed_s": 1.8446121867746115,
+          "near_tie_divergences": []
+        },
+        {
+          "requests": 8,
+          "elapsed_s": 0.9789599366486073,
+          "near_tie_divergences": []
+        }
+      ],
+      "stream": "pass",
+      "seeded_sampling_n2_penalties": "pass",
+      "echo_prompt_logprobs_and_stop": "pass",
+      "disconnects_and_page_reclamation": "pass"
+    },
+    "http-graph": {
+      "url": "http://127.0.0.1:18015",
+      "status": "pass",
+      "concurrency": [
+        {
+          "requests": 1,
+          "elapsed_s": 0.2239690748974681,
+          "near_tie_divergences": []
+        },
+        {
+          "requests": 4,
+          "elapsed_s": 0.6362744038924575,
+          "near_tie_divergences": []
+        },
+        {
+          "requests": 8,
+          "elapsed_s": 0.9775212798267603,
+          "near_tie_divergences": []
+        }
+      ],
+      "stream": "pass",
+      "seeded_sampling_n2_penalties": "pass",
+      "echo_prompt_logprobs_and_stop": "pass",
+      "disconnects_and_page_reclamation": "pass"
+    }
+  },
+  "performance": {
+    "initial_matrix_status": "fail",
+    "final_status": "pass",
+    "selected_runs": {
+      "eager-4096-1": "performance-fixed/eager-4096-1",
+      "graph-4096-1": "performance-repeat/graph-4096-1",
+      "eager-16384-1": "performance-confirm/eager-16384-1",
+      "graph-16384-1": "performance-fixed/graph-16384-1",
+      "eager-65536-1": "performance-fixed/eager-65536-1",
+      "graph-65536-1": "performance-fixed/graph-65536-1"
+    },
+    "note": "Original regression/retest runs retained separately; selected runs each contain five complete measured repetitions."
+  },
+  "validation_source_sha256": {
+    "benchmarks/ksa/hf_reference.py": "d923b8c31c5c8c02d6de92615012e02d2dc1d948063fabaf5508939297b6c3e3",
+    "benchmarks/ksa/final_decode.py": "3160364cd37d131b55a9fbf92c89d2927f413b2e6d13b71c062102cb3a09ae71",
+    "benchmarks/ksa/final_validation.py": "14ee4fe4385e7fca7d8907ecbb441188418914761b23066349b0df5f6790d040",
+    "benchmarks/ksa/v1.py": "76bd927df0d26d95b67fa31ebfe613fe9b7d0e53ce03f1fdddcf483edf8deb75",
+    "benchmarks/ksa/cudagraph_v1.py": "76b404a37b2fa23207d288292aae710fa402bec01fee69a9f99b3a9a86b5755b",
+    "benchmarks/ksa/final_generation.py": "426836c8642187523aca056e2f3dbdc16c1db287986fe685c2e7a5ace01e793f",
+    "benchmarks/ksa/v1_pressure.py": "08148d216422611420bb906be8526897572ff96ddfbd78bba72daf04f63e3807",
+    "benchmarks/ksa/plain_qwen3.py": "79f6cb9725834a19163fc99b3425f757f99ea3ef28469633337bf9d4eb96ee16",
+    "benchmarks/ksa/v1_serving.py": "e5e0a18721b25749735beac127cf2400e0ac962e459d102108b6deefb61b7ae8",
+    "benchmarks/ksa/serve_validation.sh": "bb891ac663f5eb879755512574b63497861d73d715ff840af02ea46055569bab",
+    "benchmarks/ksa/test_baseline.py": "01a3d08bc837adbeba8095f57a498196d9849d1df633e5ee4cb27c8315a3cbeb"
+  },
+  "tests": {
+    "cpu_contracts": {
+      "passed": 15
+    },
+    "ksa_pytest": {
+      "passed": 132,
+      "warnings": 15,
+      "elapsed_s": 62.88
+    },
+    "retained_imports_without_legacy_modules": 9
+  },
+  "initial_harness_failures": [
+    {
+      "job": "teacher",
+      "error": "151936 HF text columns versus 151937 sampler columns",
+      "resolution": "Export text_vocab_size columns, matching existing graph validation; rerun 46/46 passes."
+    },
+    {
+      "job": "performance",
+      "error": "Duplicate system vllm metadata and pre_commit spelling mismatched the baseline query",
+      "resolution": "Query importlib.metadata.version using original baseline package names; all seven versions match, no dependency changes."
+    }
+  ],
+  "not_run": [
+    "Full standalone scheduler pytest (no scheduler changes)",
+    "Historical performance matrices",
+    "Ordinary Qwen3 performance baseline",
+    "Other dtype/GPU/distributed configurations"
+  ],
+  "required_not_run": []
+}

@@ -235,6 +235,7 @@ hip_compat.h
 
 # Benchmark dataset
 benchmarks/**/*.json
+!benchmarks/ksa/fixtures/hf_reference/*.json
 
 # Linting
 actionlint

@@ -9,9 +9,7 @@ import time
 from pathlib import Path
 
 import torch
-from baseline import write_json
-from decode import validate
-from prefill import ROOT, compare
+from hf_reference import ROOT, compare, validate, write_json
 
 
 def set_attention(worker, enabled):

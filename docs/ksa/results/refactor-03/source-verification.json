@@ -1,0 +1,6 @@
+{
+  "production_diff_empty": true,
+  "worker_from_startup_timer_ast_equals_baseline": true,
+  "git_sha": "81d2c510efbfdf9efdd801e6b6204abfaff97c23",
+  "known_failure_generated_tokens_unchanged": true
+}

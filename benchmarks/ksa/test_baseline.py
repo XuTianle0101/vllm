@@ -243,38 +243,205 @@ class FinalValidationContractTest(unittest.TestCase):
         self.assertEqual(len(after["captures"]), 2)
 
     def test_final_decode_gate_rejects_missing_or_contaminated_measurements(self):
-        """A summary must not accept partial matrices or timing with graph capture."""
-        from final_validation import summarize
+        """Missing jobs, graph capture and leaked pages invalidate timing."""
+        from final_validation import LENGTHS, ROOT, summarize
 
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            write_json(root / "processes.json", [])
-            self.assertEqual(summarize(root)["decode_gate"], "fail")
-            for length in (16384, 32768, 65536):
-                for rep in range(5):
-                    target = root / f"hf-{length}" / "outputs"
-                    target.mkdir(parents=True, exist_ok=True)
-                    write_json(
-                        target / f"timing-{length}-{rep}.json",
-                        dict(decode_ms=[10, 12], ttft_ms=20),
-                    )
-                target = root / f"graph-{length}-1"
-                target.mkdir()
-                write_json(
-                    target / "timing.json",
-                    [
-                        dict(
-                            repetition=rep, status="pass", mean_decode_ms=5, ttft_ms=30
-                        )
-                        for rep in range(5)
-                    ],
+            args = SimpleNamespace(
+                before=ROOT / "docs/ksa/results/refactor-01/performance.csv",
+                output=root,
+            )
+            self.assertEqual(summarize(args)["status"], "fail")
+            with args.before.open() as stream:
+                previous = list(csv.DictReader(stream))
+            for length in LENGTHS:
+                for mode in ("eager", "graph"):
+                    rows = [
+                        {
+                            k: v if k in ("mode", "status") else float(v)
+                            for k, v in row.items()
+                        }
+                        for row in previous
+                        if int(row["length"]) == length and row["mode"] == mode
+                    ]
+                    target = root / f"{mode}-{length}-1"
+                    target.mkdir()
+                    write_json(target / "timing.json", rows)
+            self.assertEqual(summarize(args)["status"], "pass")
+            target = root / "graph-4096-1" / "timing.json"
+            original = json.loads(target.read_text())
+            for field, value in (
+                ("status", "capture_contaminated"),
+                ("new_captures", 1),
+                ("free_pages_after", 0),
+                ("repetition", 1),
+                ("mean_decode_ms", float("nan")),
+            ):
+                rows = [dict(row) for row in original]
+                next(r for r in rows if r["repetition"] == 0)[field] = value
+                write_json(target, rows)
+                self.assertEqual(summarize(args)["status"], "fail")
+
+
+class HFReferenceContractTest(unittest.TestCase):
+    """Frozen inputs and public numerical gates survive reference extraction."""
+
+    def test_frozen_inputs_match_original_constructor_and_failure_prefixes(self):
+        import hf_reference as reference
+
+        _, lock, inputs = reference.load_reference()
+        self.assertEqual(reference.digest(inputs), lock["input_hash"])
+        self.assertEqual(reference.make_inputs(Tokenizer()), make_inputs(Tokenizer()))
+        self.assertEqual(list(inputs), list(make_inputs(Tokenizer())))
+        self.assertEqual(len(inputs), 23)
+        failures = reference.read(reference.FIXTURES / "known-failures.json")
+        self.assertEqual(
+            {(r["case"], r["mode"], r["repeat"]) for r in failures},
+            {
+                (f"length-{n}", mode, rep)
+                for n in (1023, 1024, 1031, 1032, 1033)
+                for rep, mode in enumerate(("eager", "graph", "graph"))
+            },
+        )
+        self.assertTrue(all(len(r["generated_ids"]) == 128 for r in failures))
+
+    def test_reference_rejects_changed_tokens_and_relaxed_thresholds(self):
+        import shutil
+
+        import hf_reference as reference
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "reference"
+            shutil.copytree(reference.FIXTURES, root)
+            report, _, inputs = reference.load_reference(root)
+            report["thresholds"]["logits_max_abs_error"] += 0.01
+            write_json(root / "correctness.json", report)
+            with self.assertRaisesRegex(ValueError, "tolerance"):
+                reference.load_reference(root)
+            shutil.copy(reference.FIXTURES / "correctness.json", root)
+            inputs["length-8"]["input_ids"][0] += 1
+            write_json(root / "inputs.json", inputs)
+            with self.assertRaisesRegex(ValueError, "input hash"):
+                reference.load_reference(root)
+
+    def test_original_and_extracted_gates_agree_on_boundaries_and_nonfinite(self):
+        import torch
+        from hf_reference import compare, load_reference
+        from prefill import compare as original_compare
+
+        thresholds = load_reference()[0]["thresholds"]
+        expected = torch.tensor([[1.0, 0.0], [0.0, 1.0]])
+        for error in (0.0, 0.5, 20.33521270751953, 20.33521270751953 + 0.001):
+            actual = expected + error
+            self.assertEqual(
+                compare(torch, expected, actual, [7, 8], thresholds),
+                original_compare(torch, expected, actual, [7, 8], thresholds),
+            )
+        for value in (float("nan"), float("inf")):
+            actual = torch.full_like(expected, value)
+            result = compare(torch, expected, actual, [7, 8], thresholds)
+            self.assertEqual(result["status"], "fail")
+            self.assertEqual(result["first_anomaly_position"], 7)
+
+    def test_teacher_preserves_cache_order_and_logits_rows(self):
+        import torch
+        from baseline import teacher as original_teacher
+        from hf_reference import teacher
+
+        def run(function):
+            model = Mock()
+            model.side_effect = [
+                SimpleNamespace(
+                    logits=torch.tensor([[[float(i), 1.0]]]),
+                    past_key_values=f"cache-{i}",
                 )
-            self.assertEqual(summarize(root)["decode_gate"], "pass")
-            target = root / "graph-32768-1" / "timing.json"
-            rows = json.loads(target.read_text())
-            rows[0]["status"] = "capture_contaminated"
-            write_json(target, rows)
-            self.assertEqual(summarize(root)["decode_gate"], "fail")
+                for i in range(3)
+            ]
+            model.prepare_inputs_for_generation.side_effect = lambda token, **kwargs: (
+                dict(input_ids=token, **kwargs)
+            )
+            # Exercise the public teacher interface on CPU; CUDA equivalence is
+            # measured separately with the actual frozen HF model.
+            real_tensor = torch.tensor
+            with patch.object(
+                torch, "tensor", side_effect=lambda x, **kw: real_tensor(x)
+            ):
+                rows = function(torch, model, "prompt", [7, 8])
+            calls = model.prepare_inputs_for_generation.call_args_list
+            self.assertEqual(
+                [c.kwargs["past_key_values"] for c in calls], ["cache-0", "cache-1"]
+            )
+            self.assertEqual([c.args[0].item() for c in calls], [7, 8])
+            return rows
+
+        torch.testing.assert_close(run(teacher), run(original_teacher), rtol=0, atol=0)
+
+
+class StandardValidationTest(unittest.TestCase):
+    """Guard diagnostic token forcing and the frozen performance decision rule."""
+
+    def test_teacher_preserves_raw_logits_across_slot_moves_and_reuse(self):
+        import torch
+        from final_decode import FrozenTeacher
+
+        from vllm import SamplingParams
+        from vllm.v1.sample.logits_processor.interface import (
+            BatchUpdate,
+            MoveDirectionality,
+        )
+
+        processor = FrozenTeacher(None, None, False)
+        output_a, output_b = [], []
+
+        def added(index, name, teacher, output):
+            return (
+                index,
+                SamplingParams(extra_args=dict(case=name, teacher_ids=teacher)),
+                [42],
+                output,
+            )
+
+        processor.update_state(
+            BatchUpdate(
+                2,
+                [],
+                [added(0, "a", [1, 2], output_a), added(1, "b", [3, 0], output_b)],
+                [],
+            )
+        )
+        raw = torch.arange(8, dtype=torch.float32).reshape(2, 4)
+        self.assertEqual(processor.apply(raw.clone()).argmax(-1).tolist(), [1, 3])
+        torch.testing.assert_close(processor.rows["a"][0], raw[0])
+        output_a.append(1)
+        output_b.append(3)
+        processor.update_state(
+            BatchUpdate(2, [], [], [(0, 1, MoveDirectionality.SWAP)])
+        )
+        self.assertEqual(processor.apply(raw.clone()).argmax(-1).tolist(), [0, 2])
+        torch.testing.assert_close(processor.rows["a"][1], raw[1])
+        processor.update_state(
+            BatchUpdate(1, [0], [], [(1, 0, MoveDirectionality.UNIDIRECTIONAL)])
+        )
+        output_a.append(2)
+        torch.testing.assert_close(processor.apply(raw[:1].clone()), raw[:1])
+        processor.update_state(BatchUpdate(1, [0], [added(0, "c", [0], [])], []))
+        self.assertEqual(processor.apply(raw[:1].clone()).argmax(-1).item(), 0)
+        self.assertEqual(set(processor.rows), {"a", "b", "c"})
+
+    def test_performance_requires_both_mean_and_range_for_regression(self):
+        from final_validation import compare_metric
+
+        for old, new, metric, expected in (
+            ([100] * 5, [106] * 5, "ttft_ms", "regression"),
+            ([100] * 5, [102] * 5, "ttft_ms", "retest"),
+            ([90, 90, 100, 110, 110], [99, 99, 109, 119, 119], "ttft_ms", "retest"),
+            ([100] * 5, [94] * 5, "output_tokens_per_s", "regression"),
+            ([100] * 5, [110] * 5, "peak_memory_bytes", "retest"),
+            ([100] * 5, [90] * 5, "ttft_ms", "pass"),
+        ):
+            with self.subTest(metric=metric, new=new):
+                self.assertEqual(compare_metric(old, new, metric)["status"], expected)
 
 
 if __name__ == "__main__":

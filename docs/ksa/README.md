@@ -2,6 +2,7 @@
 
 当前状态：**T00 基线已冻结，T01–T03 已通过 A100 验收；T04 专用 eager 路径已验收；通用 `vllm serve` / V1 接入已实现并完成 A100 功能验证；T05 decode 图与 profiling 已验收；T06 分页 Triton attention 已按 A100 完成验收。**
 
+- [当前标准路径验证](standard-validation.md)：重构票 03 的 HF、teacher decode、HTTP、生命周期与代表性性能复跑入口。
 - [T07 最终验收](t07-final-validation.md)：128K、冻结精度、同卡顺序 HF 对照及完整复现命令（NEEDS_FIX：完整生成轨迹有精度超限）。
 - [T06 分页 Triton attention](t06-attention-kernels.md)：prefill/decode、V1 回归、五次稳态性能与结果。
 - [T05 CUDA Graph 与 profiling](t05-cudagraph-profiling.md)：精度、启动成本、实测收益与退化、T06 路径选择。

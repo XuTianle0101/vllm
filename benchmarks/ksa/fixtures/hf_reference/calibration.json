@@ -1,0 +1,140 @@
+{
+  "baseline_id": "T00-305bf8f9dc429f1af60e",
+  "policy": {
+    "version": "ksa-bf16-calibration-v1",
+    "noise_multiplier": 2.0,
+    "floors": {
+      "logits_max_abs_error": 0.5,
+      "logits_rmse": 0.125,
+      "logprobs_max_abs_error": 0.5
+    },
+    "ceilings": {
+      "logits_max_abs_error": 24.0,
+      "logits_rmse": 4.0,
+      "logprobs_max_abs_error": 12.0
+    },
+    "fp32_max_abs_error": 0.005,
+    "repeat_max_abs_error": 0.0,
+    "max_mismatch_margin": 0.5
+  },
+  "noise": {
+    "logits_max_abs_error": 10.167606353759766,
+    "logits_rmse": 1.8529726266860962,
+    "logprobs_max_abs_error": 4.010065078735352
+  },
+  "cases": [
+    {
+      "case_id": "length-17",
+      "fp32_baseline_id": "T00-9eb04bac30c7ba3193c4",
+      "fp32_equivalence": 0.0001544952392578125,
+      "bf16_vs_fp32": {
+        "decode_logits": {
+          "max_mismatch_margin": 0.04267120361328125,
+          "logits_max_abs_error": 0.8081073760986328,
+          "logits_rmse": 0.24117934703826904,
+          "logprobs_max_abs_error": 0.284482479095459,
+          "top1_agreement": 0.9200000166893005,
+          "first_mismatch": {
+            "row_index": [
+              0
+            ],
+            "expected_token": 2038,
+            "actual_token": 1372,
+            "top1_margin": 0.018154144287109375
+          },
+          "min_top1_margin": 0.018154144287109375,
+          "finite": true
+        },
+        "prefill_logits": {
+          "max_mismatch_margin": 0.042690277099609375,
+          "logits_max_abs_error": 1.0822763442993164,
+          "logits_rmse": 0.26927971839904785,
+          "logprobs_max_abs_error": 0.2878589630126953,
+          "top1_agreement": 0.9200000166893005,
+          "first_mismatch": {
+            "row_index": [
+              0
+            ],
+            "expected_token": 2038,
+            "actual_token": 1372,
+            "top1_margin": 0.018169403076171875
+          },
+          "min_top1_margin": 0.018169403076171875,
+          "finite": true
+        }
+      },
+      "tensor_hashes": {
+        "fp32": "782e9cb91b1198d232e65085af0c0d373c52399806a5293796f322eef8398f4e",
+        "bf16": "0ad095276c12797ea16d21d80e414cbe968b244b0dcccaae745a0ceb732fff8b"
+      }
+    },
+    {
+      "case_id": "length-1025",
+      "fp32_baseline_id": "T00-9eb04bac30c7ba3193c4",
+      "fp32_equivalence": 0.00080108642578125,
+      "bf16_vs_fp32": {
+        "decode_logits": {
+          "max_mismatch_margin": 0.0,
+          "logits_max_abs_error": 10.167606353759766,
+          "logits_rmse": 1.7940196990966797,
+          "logprobs_max_abs_error": 4.010065078735352,
+          "top1_agreement": 1.0,
+          "first_mismatch": null,
+          "min_top1_margin": 0.5458583831787109,
+          "finite": true
+        },
+        "prefill_logits": {
+          "max_mismatch_margin": 0.0,
+          "logits_max_abs_error": 9.835018157958984,
+          "logits_rmse": 1.8529726266860962,
+          "logprobs_max_abs_error": 3.7404003143310547,
+          "top1_agreement": 1.0,
+          "first_mismatch": null,
+          "min_top1_margin": 0.5458812713623047,
+          "finite": true
+        }
+      },
+      "tensor_hashes": {
+        "fp32": "776e151919dcc7fd80242f7ae334b4ea86184edfd156015681289ad761b21b74",
+        "bf16": "ec8b1afab422c4379e078efdeac588141628b54bc464655e46047af6b249f167"
+      }
+    },
+    {
+      "case_id": "length-4096",
+      "fp32_baseline_id": "T00-9eb04bac30c7ba3193c4",
+      "fp32_equivalence": 0.002399444580078125,
+      "bf16_vs_fp32": {
+        "decode_logits": {
+          "max_mismatch_margin": 0.0,
+          "logits_max_abs_error": 1.6503944396972656,
+          "logits_rmse": 0.5229094624519348,
+          "logprobs_max_abs_error": 0.8086166381835938,
+          "top1_agreement": 1.0,
+          "first_mismatch": null,
+          "min_top1_margin": 1.4523801803588867,
+          "finite": true
+        },
+        "prefill_logits": {
+          "max_mismatch_margin": 0.0,
+          "logits_max_abs_error": 1.892679214477539,
+          "logits_rmse": 0.5911391377449036,
+          "logprobs_max_abs_error": 0.5869865417480469,
+          "top1_agreement": 1.0,
+          "first_mismatch": null,
+          "min_top1_margin": 1.4522838592529297,
+          "finite": true
+        }
+      },
+      "tensor_hashes": {
+        "fp32": "f6574ceb1eae7eb4e9725369581a82ae9a57bb448a8d80c0c678c1fb8d8e87a8",
+        "bf16": "39886a069ff659adc451efa8084faca503c69cd491cc7a61600581c74be5b22e"
+      }
+    }
+  ],
+  "thresholds": {
+    "logits_max_abs_error": 20.33521270751953,
+    "logits_rmse": 3.7059452533721924,
+    "logprobs_max_abs_error": 8.020130157470703
+  },
+  "assessment_sha256": "441d2e1f7d790204a46c24d2c1c40d25fe6e5ce5be8235e8277b08acebb26a92"
+}

@@ -8,8 +8,16 @@ import os
 import sys
 from pathlib import Path
 
-from baseline import command, digest, file_hash, write_json
-from prefill import BASELINE_ID, ROOT, TOLERANCE_ID, compare, read
+from hf_reference import (
+    BASELINE_ID,
+    ROOT,
+    TOLERANCE_ID,
+    command,
+    compare,
+    file_hash,
+    load_reference,
+    write_json,
+)
 
 
 def install_capture(worker, prompt_lengths):
@@ -68,16 +76,7 @@ def run(args):
     from vllm import LLM, SamplingParams
 
     args.output.mkdir(parents=True, exist_ok=False)
-    baseline = read(args.baseline / "correctness.json")
-    lock = read(args.baseline / "baseline-lock.json")
-    calibration = read(args.baseline / "calibration.json")
-    inputs = read(args.baseline / "inputs.json")
-    if (
-        "T00-" + digest(lock)[:20] != BASELINE_ID
-        or "T00-tol-" + digest(calibration)[:20] != TOLERANCE_ID
-        or digest(inputs) != lock["input_hash"]
-    ):
-        raise ValueError("Frozen baseline identity mismatch")
+    baseline, lock, inputs = load_reference(args.baseline)
     for name, expected in lock["model_hashes"].items():
         if file_hash(args.model / name) != expected:
             raise ValueError(f"Model hash mismatch: {name}")

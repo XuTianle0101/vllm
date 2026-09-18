@@ -1,0 +1,342 @@
+{
+  "git_sha": "81d2c510efbfdf9efdd801e6b6204abfaff97c23",
+  "scope": "Validation-only extraction; production and legacy reference sources unchanged",
+  "reference_equivalence": "pass",
+  "model_accuracy": "known_failures_preserved",
+  "contracts": {
+    "passed": 13
+  },
+  "ksa_pytest": {
+    "passed": 132,
+    "seconds": 63.05,
+    "warnings": 15
+  },
+  "teacher": [
+    {
+      "case": "length-1",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    },
+    {
+      "case": "length-7",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    },
+    {
+      "case": "length-8",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 1.3125
+    },
+    {
+      "case": "length-9",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.71875
+    },
+    {
+      "case": "length-15",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 1.30859375
+    },
+    {
+      "case": "length-16",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    },
+    {
+      "case": "length-17",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    },
+    {
+      "case": "length-1023",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    },
+    {
+      "case": "length-1024",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    },
+    {
+      "case": "length-1025",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    },
+    {
+      "case": "length-1031",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    },
+    {
+      "case": "length-1032",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    },
+    {
+      "case": "length-1033",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    },
+    {
+      "case": "length-4096",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    },
+    {
+      "case": "english",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    },
+    {
+      "case": "chinese",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    },
+    {
+      "case": "retrieval-4096",
+      "rows": 25,
+      "max_abs_error": 0.0,
+      "frozen_max_abs_error": 0.0
+    }
+  ],
+  "known_failures": [
+    {
+      "case": "length-1023",
+      "mode": "eager",
+      "repeat": 0,
+      "status": "fail",
+      "logits_max_abs_error": 35.75,
+      "logits_rmse": 2.714395046234131,
+      "logprobs_max_abs_error": 5.328088760375977,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1023",
+      "mode": "graph",
+      "repeat": 1,
+      "status": "fail",
+      "logits_max_abs_error": 35.75,
+      "logits_rmse": 2.711172342300415,
+      "logprobs_max_abs_error": 5.328088760375977,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1023",
+      "mode": "graph",
+      "repeat": 2,
+      "status": "fail",
+      "logits_max_abs_error": 35.75,
+      "logits_rmse": 2.714395046234131,
+      "logprobs_max_abs_error": 5.328088760375977,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1024",
+      "mode": "eager",
+      "repeat": 0,
+      "status": "fail",
+      "logits_max_abs_error": 28.75,
+      "logits_rmse": 2.198162794113159,
+      "logprobs_max_abs_error": 4.625120162963867,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1024",
+      "mode": "graph",
+      "repeat": 1,
+      "status": "fail",
+      "logits_max_abs_error": 27.75,
+      "logits_rmse": 2.1302037239074707,
+      "logprobs_max_abs_error": 5.000024795532227,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1024",
+      "mode": "graph",
+      "repeat": 2,
+      "status": "fail",
+      "logits_max_abs_error": 28.75,
+      "logits_rmse": 2.198162794113159,
+      "logprobs_max_abs_error": 4.625120162963867,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1031",
+      "mode": "eager",
+      "repeat": 0,
+      "status": "fail",
+      "logits_max_abs_error": 28.375,
+      "logits_rmse": 2.177574634552002,
+      "logprobs_max_abs_error": 4.687593460083008,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1031",
+      "mode": "graph",
+      "repeat": 1,
+      "status": "fail",
+      "logits_max_abs_error": 28.125,
+      "logits_rmse": 2.128626585006714,
+      "logprobs_max_abs_error": 4.937568664550781,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1031",
+      "mode": "graph",
+      "repeat": 2,
+      "status": "fail",
+      "logits_max_abs_error": 28.375,
+      "logits_rmse": 2.177574634552002,
+      "logprobs_max_abs_error": 4.687593460083008,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1032",
+      "mode": "eager",
+      "repeat": 0,
+      "status": "fail",
+      "logits_max_abs_error": 22.25,
+      "logits_rmse": 1.78680419921875,
+      "logprobs_max_abs_error": 14.078042984008789,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1032",
+      "mode": "graph",
+      "repeat": 1,
+      "status": "fail",
+      "logits_max_abs_error": 33.625,
+      "logits_rmse": 2.567350149154663,
+      "logprobs_max_abs_error": 14.351476669311523,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1032",
+      "mode": "graph",
+      "repeat": 2,
+      "status": "fail",
+      "logits_max_abs_error": 22.25,
+      "logits_rmse": 1.78680419921875,
+      "logprobs_max_abs_error": 14.078042984008789,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1033",
+      "mode": "eager",
+      "repeat": 0,
+      "status": "fail",
+      "logits_max_abs_error": 27.75,
+      "logits_rmse": 2.112842321395874,
+      "logprobs_max_abs_error": 4.812570571899414,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1033",
+      "mode": "graph",
+      "repeat": 1,
+      "status": "fail",
+      "logits_max_abs_error": 27.75,
+      "logits_rmse": 2.1173348426818848,
+      "logprobs_max_abs_error": 4.812559127807617,
+      "max_mismatch_margin": 0.0
+    },
+    {
+      "case": "length-1033",
+      "mode": "graph",
+      "repeat": 2,
+      "status": "fail",
+      "logits_max_abs_error": 27.75,
+      "logits_rmse": 2.112842321395874,
+      "logprobs_max_abs_error": 4.812570571899414,
+      "max_mismatch_margin": 0.0
+    }
+  ],
+  "known_failure_metrics_equal_ticket_01": true,
+  "prefill": {
+    "status": "pass",
+    "cases": 17,
+    "runtime": {
+      "max_internal_rows": 257
+    },
+    "maxima": {
+      "logits_max_abs_error": 2.75,
+      "logits_rmse": 0.7344133257865906,
+      "logprobs_max_abs_error": 1.2812080383300781,
+      "max_mismatch_margin": 0.25
+    }
+  },
+  "graphs_short": {
+    "status": "pass",
+    "comparisons": 8,
+    "output_tokens": 32
+  },
+  "pressure": {
+    "status": "pass",
+    "preemptions": 1,
+    "steps": 154,
+    "output_tokens_per_request": 80,
+    "free_blocks": 329
+  },
+  "plain_qwen3": {
+    "status": "pass",
+    "same_prefix": [
+      {
+        "max_logprob_error": 0.007791996002197266,
+        "max_mismatch_margin": 0.0,
+        "status": "pass"
+      },
+      {
+        "max_logprob_error": 0.004803180694580078,
+        "max_mismatch_margin": 0.001953125,
+        "status": "pass"
+      }
+    ],
+    "exact_tokens": false
+  },
+  "tensor_copies": [
+    {
+      "file": "eager-0.pt",
+      "sha256": "8da7331c89375815249eb26a459f925bbc034287c9aaee02fadacb3c3086be2f",
+      "matches_ticket_01": true
+    },
+    {
+      "file": "graph-1.pt",
+      "sha256": "4145efa5ca94bfbec7e117f99f4545b938648ee87eba7dd1eb500ea0a613e17e",
+      "matches_ticket_01": true
+    },
+    {
+      "file": "graph-2.pt",
+      "sha256": "c23b8ace92c30b43c9cc1e69fe29f199eb7ece3dd329dbf22ec1073d435e6bcf",
+      "matches_ticket_01": true
+    }
+  ],
+  "not_run": [
+    "full 69-trajectory HF matrix",
+    "HTTP",
+    "performance matrix",
+    "legacy independent runner"
+  ],
+  "source_sha256": {
+    "hf_reference.py": "d923b8c31c5c8c02d6de92615012e02d2dc1d948063fabaf5508939297b6c3e3",
+    "final_generation.py": "426836c8642187523aca056e2f3dbdc16c1db287986fe685c2e7a5ace01e793f",
+    "equivalence.py": "421a48992235af351b53956791e98adbf32ae75f85bd991df5aec84e445c7a70",
+    "standard.sh": "47f04eafd88fa3b9f9ba0cc7b74d06ce9bb54ce1f1aad7f9680fe8f85fb3b72c",
+    "standard-local.sh": "60515fe79a77ff1ec33d2d296852f920926224c94f116e6b2a88876ed61f204b"
+  }
+}
