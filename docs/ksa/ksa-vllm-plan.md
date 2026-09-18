@@ -1,6 +1,7 @@
 # KSA-4B-base 的 vLLM 高性能推理适配计划
 
-状态：T00 开发已启动，实验脚本交付后等待服务器验收。
+状态：T00–T06 已完成 A100 验收；T07 最终验收发现生成精度超限，保持 NEEDS_FIX。
+当前结果与硬件边界见 [T07 报告](results/T07/a100-final/README.md)。
 
 ## 1. 目标和约束
 
@@ -80,7 +81,7 @@ prefill 和 decode 分别评估官方算子。只有许可证、5090 兼容性�
 - 固定输入和输出长度，性能实验避免提前 EOS 改变输出长度；预热后至少重复 5 次。
 - 报告 TTFT、稳态 TPOT、块边界 TPOT、输出 tokens/s、峰值显存与实际 KV 页占用；加载和编译时间单独记录。
 - 主矩阵为 4K、16K、32K、64K；128K 场景使用接近上限的 prompt，预留生成空间，总文本长度不超过 131072。
-- 并发为 1/4/8，OOM 保留记录。HF 如果仅支持 batch=1，直接比较限于单请求，vLLM 并发结果单列。
+- 4K–64K 并发为 1/4/8；128K 仅测单请求，用户 2026-09-18 明确无需测试 128K×4/8。OOM 保留记录。HF 如果仅支持 batch=1，直接比较限于单请求，vLLM 并发结果单列。
 - 最终 16K、32K、64K 单请求 decode 均需优于 HF，收益超过重复测量波动；短窗口层实际 KV 呈 `O(1024 + N/8)` 增长，并支持 128K 单请求推理无 OOM。
 - 短上下文或 prefill 的回退必须披露和分析。不能用单内核加速代替端到端结论。
 
@@ -90,4 +91,4 @@ prefill 和 decode 分别评估官方算子。只有许可证、5090 兼容性�
 
 每次只推进一个 ticket：实现和本地检查 → 更新文档、commit、普通 push → 提供绑定 SHA 的服务器命令和结果格式 → 用户运行并反馈 → 分析并关闭或修复复测 → 下一个 ticket。
 
-完整流程见 [workflow.md](workflow.md)，ticket 列表见 [tickets/README.md](tickets/README.md)。当前按上述开发流程执行 T00。
+完整流程见 [workflow.md](workflow.md)，ticket 列表见 [tickets/README.md](tickets/README.md)。当前按上述开发流程处理 T07 验收失败。

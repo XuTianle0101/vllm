@@ -1,6 +1,8 @@
 # T07 最终验收与复现
 
 T07 在 A100 80GB 上执行，沿用 T00 冻结环境、权重、输入和容差。
+2026-09-18 全轨迹 HF 复核发现 15/69 精度超限，当前为 `NEEDS_FIX`；
+性能门禁通过也不能代替总体验收。详见 [结果报告](results/T07/a100-final/README.md)。
 RTX 5090 未实测；A100 结果不得替代 SM120 结论。最终状态以 ticket 和结果报告为准。
 
 ## 安装、环境与启动
@@ -43,6 +45,7 @@ base 模型的 chat 需要用户提供模板，验收接口为 completions。
 修复后须换结果目录。所有 GPU 命令顺序执行。
 
 ```bash
+T07_SHA=b7194a983e0fd5f7fa526b03bf6210edb2b8113a
 git fetch origin releases/v0.26.0-ksa
 git checkout "$T07_SHA"
 test "$(git rev-parse HEAD)" = "$T07_SHA"
@@ -70,7 +73,7 @@ mkdir -p "$OUT"
   --output "$OUT/performance"
 .venv/bin/python benchmarks/ksa/final_validation.py --model "$MODEL" \
   --baseline "$BASELINE" --expected-sha "$T07_SHA" --batches 4 8 --modes graph \
-  --output "$OUT/performance"
+  --lengths 4096 16384 32768 65536 --output "$OUT/performance"
 ```
 
 分别将上述服务的 `ksa_cudagraph` 设置为 true / false 验证 graph / eager，
@@ -83,8 +86,9 @@ mkdir -p "$OUT"
 
 ## 指标定义与门禁
 
-性能矩阵是 4096/16384/32768/65536/130944 prompt × 128 输出，vLLM 并发 1/4/8，
-单请求分别 eager/graph，并发 4/8 测量 graph 生产配置；
+单请求矩阵是 4096/16384/32768/65536/130944 prompt × 128 输出，分别测量 eager/graph。
+并发 4/8 只测量 4096/16384/32768/65536 的 graph 生产配置；
+按用户 2026-09-18 要求，128K×4/8 不执行，也不计为通过。
 HF 官方缓存路径只跑单请求。同卡子进程顺序执行，
 每项一次预热、五次正式重复。失败子进程不会阻断其他形状，OOM 保留 traceback。
 
