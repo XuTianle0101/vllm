@@ -29,6 +29,7 @@ from vllm.config import (
     iter_architecture_defaults,
     try_match_architecture_defaults,
 )
+from vllm.config.ksa import ksa_architectures
 from vllm.logger import init_logger
 from vllm.logging_utils import logtime
 from vllm.tasks import ScoreType
@@ -195,6 +196,7 @@ _TEXT_GENERATION_MODELS = {
     "Qwen2ForCausalLM": ("qwen2", "Qwen2ForCausalLM"),
     "Qwen2MoeForCausalLM": ("qwen2_moe", "Qwen2MoeForCausalLM"),
     "Qwen3ForCausalLM": ("qwen3", "Qwen3ForCausalLM"),
+    "KSAForCausalLM": ("ksa", "KSAForCausalLM"),
     "Qwen3MoeForCausalLM": ("qwen3_moe", "Qwen3MoeForCausalLM"),
     "RWForCausalLM": ("falcon", "FalconForCausalLM"),
     "SarvamMoEForCausalLM": ("sarvam", "SarvamMoEForCausalLM"),
@@ -1225,6 +1227,8 @@ class _ModelRegistry:
         if not architectures:
             raise ValueError("No model architectures are specified")
 
+        architectures = ksa_architectures(architectures, model_config)
+
         # Require transformers impl
         if model_config.model_impl == "transformers":
             arch = self._try_resolve_transformers(architectures[0], model_config)
@@ -1276,6 +1280,8 @@ class _ModelRegistry:
             architectures = [architectures]
         if not architectures:
             raise ValueError("No model architectures are specified")
+
+        architectures = ksa_architectures(architectures, model_config)
 
         # Require transformers impl
         if model_config.model_impl == "transformers":

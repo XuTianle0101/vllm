@@ -7,6 +7,7 @@ from typing import Any, Literal
 
 import vllm.envs as envs
 from vllm.config import VllmConfig
+from vllm.config.ksa import uses_summary_attention
 from vllm.inputs import (
     EngineInput,
     PromptType,
@@ -465,6 +466,16 @@ class InputProcessor:
                             f"size or increase the encoder cache size "
                             f"by setting --limit-mm-per-prompt at startup."
                         )
+
+        if (
+            prompt_ids
+            and uses_summary_attention(model_config.hf_config)
+            and any(
+                token < 0 or token >= model_config.hf_config.summary_token_begin
+                for token in prompt_ids
+            )
+        ):
+            raise ValueError("KSA prompts must contain text token IDs only")
 
         if prompt_ids and tokenizer is not None:
             max_input_id = max(prompt_ids, default=0)
